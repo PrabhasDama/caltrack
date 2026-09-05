@@ -1,0 +1,22 @@
+create function public.save_onboarding(p_data jsonb) returns void language plpgsql security definer set search_path='' as $$
+declare uid uuid=auth.uid(); m jsonb=p_data->'macros'; prefs jsonb=p_data; sid text; weight numeric; height numeric; goalweight numeric;
+begin
+ if uid is null then raise exception 'Authentication required'; end if;
+ if not exists(select 1 from pg_timezone_names where name=p_data->>'timezone') then raise exception 'Invalid timezone'; end if;
+ -- Every normalized row is committed together, or none are.
+ perform 1 from public.profiles where id=uid for update;
+ weight=(p_data->>'weight')::numeric; height=(p_data->>'height')::numeric; goalweight=(p_data->>'goalWeight')::numeric;
+ if p_data->>'units'='imperial' then weight=weight/2.2046226218; goalweight=goalweight/2.2046226218; height=height*2.54; end if;
+ update public.profiles set first_name=p_data->>'firstName',units=p_data->>'units',timezone=p_data->>'timezone',starting_weight_kg=weight,height_cm=height,age=(p_data->>'age')::integer,sex=p_data->>'sex',onboarding_step=9,onboarding_draft=p_data,onboarding_completed_at=coalesce(onboarding_completed_at,now()) where id=uid;
+ insert into public.user_goals(user_id,goal,goal_weight_kg,pace) values(uid,p_data->>'goal',goalweight,p_data->>'pace') on conflict(user_id) do update set goal=excluded.goal,goal_weight_kg=excluded.goal_weight_kg,pace=excluded.pace;
+ insert into public.macro_targets(user_id,calories,protein,carbs,fat,fiber,water_ml,source,warnings_acknowledged_at) values(uid,(m->>'calories')::integer,(m->>'protein')::numeric,(m->>'carbs')::numeric,(m->>'fat')::numeric,(m->>'fiber')::numeric,(p_data->>'waterMl')::integer,p_data->>'macroMode',case when (p_data->>'acknowledged')::boolean then now() else null end) on conflict(user_id) do update set calories=excluded.calories,protein=excluded.protein,carbs=excluded.carbs,fat=excluded.fat,fiber=excluded.fiber,water_ml=excluded.water_ml,source=excluded.source,warnings_acknowledged_at=excluded.warnings_acknowledged_at;
+ insert into public.user_preferences(user_id,activity,workout_days,training_types,preferred_proteins,preferred_carbs,preferred_vegetables,preferred_fiber,restrictions,excluded_foods,disliked_foods,shopping_frequency,zip_code,shopping_preference,complexity,cooking_minutes,prep_frequency,meals_per_day,repeat_tolerance)
+ values(uid,p_data->>'activity',(p_data->>'workoutDays')::integer,array(select jsonb_array_elements_text(prefs->'trainingTypes')),array(select jsonb_array_elements_text(prefs->'proteins')),array(select jsonb_array_elements_text(prefs->'carbs')),array(select jsonb_array_elements_text(prefs->'vegetables')),array(select jsonb_array_elements_text(prefs->'fiberFoods')),array(select jsonb_array_elements_text(prefs->'restrictions')),array(select jsonb_array_elements_text(prefs->'excluded')),array(select jsonb_array_elements_text(prefs->'disliked')),p_data->>'shoppingFrequency',p_data->>'zip',p_data->>'shoppingPreference',(p_data->>'complexity')::integer,(p_data->>'cookingMinutes')::integer,p_data->>'prepFrequency',(p_data->>'mealsPerDay')::integer,p_data->>'repeatTolerance')
+ on conflict(user_id) do update set activity=excluded.activity,workout_days=excluded.workout_days,training_types=excluded.training_types,preferred_proteins=excluded.preferred_proteins,preferred_carbs=excluded.preferred_carbs,preferred_vegetables=excluded.preferred_vegetables,preferred_fiber=excluded.preferred_fiber,restrictions=excluded.restrictions,excluded_foods=excluded.excluded_foods,disliked_foods=excluded.disliked_foods,shopping_frequency=excluded.shopping_frequency,zip_code=excluded.zip_code,shopping_preference=excluded.shopping_preference,complexity=excluded.complexity,cooking_minutes=excluded.cooking_minutes,prep_frequency=excluded.prep_frequency,meals_per_day=excluded.meals_per_day,repeat_tolerance=excluded.repeat_tolerance;
+ insert into public.budgets(user_id,monthly_amount) values(uid,(p_data->>'budget')::numeric) on conflict(user_id) do update set monthly_amount=excluded.monthly_amount;
+ delete from public.store_preferences where user_id=uid;
+ for sid in select jsonb_array_elements_text(p_data->'stores') loop insert into public.store_preferences(user_id,store_id) values(uid,sid::uuid) on conflict do nothing; end loop;
+ insert into public.notification_preferences(user_id) values(uid) on conflict do nothing;
+end $$;
+revoke all on function public.save_onboarding(jsonb) from public,anon;
+grant execute on function public.save_onboarding(jsonb) to authenticated;

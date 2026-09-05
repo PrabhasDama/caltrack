@@ -1,0 +1,1086 @@
+{
+  "foods": [
+    [
+      "Chicken breast",
+      120,
+      22.5,
+      0,
+      2.6,
+      0,
+      170,
+      null,
+      "protein",
+      [
+        "meat"
+      ],
+      [
+        "chicken"
+      ],
+      "Raw boneless, skinless"
+    ],
+    [
+      "Chicken thighs",
+      144,
+      19.7,
+      0,
+      6.3,
+      0,
+      170,
+      null,
+      "protein",
+      [
+        "meat"
+      ],
+      [
+        "chicken"
+      ],
+      "Raw boneless, skinless"
+    ],
+    [
+      "Ground turkey",
+      172,
+      21.4,
+      0,
+      9.4,
+      0,
+      170,
+      null,
+      "protein",
+      [
+        "meat"
+      ],
+      [
+        "lean ground turkey"
+      ],
+      "Raw, approximately 93% lean"
+    ],
+    [
+      "Lean beef",
+      172,
+      21,
+      0,
+      9,
+      0,
+      170,
+      null,
+      "premium-protein",
+      [
+        "meat"
+      ],
+      [
+        "beef"
+      ],
+      "Raw, lean"
+    ],
+    [
+      "Eggs",
+      143,
+      12.6,
+      0.7,
+      9.5,
+      0,
+      50,
+      50,
+      "protein",
+      [
+        "egg"
+      ],
+      [
+        "egg"
+      ],
+      "Raw edible portion; one large egg ≈ 50 g"
+    ],
+    [
+      "Egg whites",
+      52,
+      10.9,
+      0.7,
+      0.2,
+      0,
+      100,
+      null,
+      "protein",
+      [
+        "egg"
+      ],
+      [
+        "egg white",
+        "eggs"
+      ],
+      "Liquid, uncooked"
+    ],
+    [
+      "Greek yogurt",
+      59,
+      10.3,
+      3.6,
+      0.4,
+      0,
+      170,
+      null,
+      "protein",
+      [
+        "dairy"
+      ],
+      [
+        "yogurt"
+      ],
+      "Plain nonfat"
+    ],
+    [
+      "Cottage cheese",
+      82,
+      11.1,
+      3.4,
+      2.3,
+      0,
+      150,
+      null,
+      "protein",
+      [
+        "dairy"
+      ],
+      [
+        "cheese"
+      ],
+      "Low fat"
+    ],
+    [
+      "Tuna",
+      116,
+      25.5,
+      0,
+      0.8,
+      0,
+      100,
+      null,
+      "protein",
+      [
+        "fish"
+      ],
+      [
+        "fish"
+      ],
+      "Canned in water, drained"
+    ],
+    [
+      "Salmon",
+      208,
+      20,
+      0,
+      13,
+      0,
+      170,
+      null,
+      "premium-protein",
+      [
+        "fish"
+      ],
+      [
+        "fish"
+      ],
+      "Raw"
+    ],
+    [
+      "Tofu",
+      144,
+      17.3,
+      2.8,
+      8.7,
+      2.3,
+      170,
+      null,
+      "protein",
+      [
+        "vegan",
+        "soy"
+      ],
+      [
+        "soy"
+      ],
+      "Firm, drained"
+    ],
+    [
+      "Beans",
+      127,
+      8.7,
+      22.8,
+      0.5,
+      6.4,
+      150,
+      null,
+      "protein",
+      [
+        "vegan"
+      ],
+      [
+        "black beans",
+        "kidney beans"
+      ],
+      "Cooked or canned, drained"
+    ],
+    [
+      "Protein powder",
+      400,
+      80,
+      8,
+      5,
+      0,
+      30,
+      null,
+      "protein",
+      [
+        "dairy"
+      ],
+      [
+        "whey",
+        "whey protein"
+      ],
+      "Whey powder; check your product label"
+    ],
+    [
+      "Rice",
+      365,
+      7.1,
+      80,
+      0.7,
+      1.3,
+      70,
+      null,
+      "carb",
+      [
+        "vegan"
+      ],
+      [
+        "jasmine rice",
+        "white rice"
+      ],
+      "Dry, uncooked"
+    ],
+    [
+      "Oats",
+      389,
+      16.9,
+      66.3,
+      6.9,
+      10.6,
+      60,
+      null,
+      "carb",
+      [
+        "vegan",
+        "gluten"
+      ],
+      [
+        "oatmeal"
+      ],
+      "Dry rolled oats; not certified gluten-free"
+    ],
+    [
+      "Potatoes",
+      77,
+      2,
+      17.5,
+      0.1,
+      2.2,
+      250,
+      null,
+      "carb",
+      [
+        "vegan"
+      ],
+      [
+        "potato"
+      ],
+      "Raw with skin"
+    ],
+    [
+      "Sweet potatoes",
+      86,
+      1.6,
+      20.1,
+      0.1,
+      3,
+      250,
+      null,
+      "carb",
+      [
+        "vegan"
+      ],
+      [
+        "sweet potato"
+      ],
+      "Raw with skin"
+    ],
+    [
+      "Bread",
+      247,
+      13,
+      41,
+      4.2,
+      7,
+      40,
+      40,
+      "carb",
+      [
+        "vegan",
+        "gluten"
+      ],
+      [
+        "whole grain bread",
+        "whole-grain bread",
+        "wheat"
+      ],
+      "Whole-grain bread; approximate 40 g slice"
+    ],
+    [
+      "Pasta",
+      371,
+      13,
+      75,
+      1.5,
+      3.2,
+      75,
+      null,
+      "carb",
+      [
+        "vegan",
+        "gluten"
+      ],
+      [
+        "wheat"
+      ],
+      "Dry"
+    ],
+    [
+      "Tortillas",
+      312,
+      8,
+      52,
+      8,
+      3.3,
+      45,
+      45,
+      "carb",
+      [
+        "vegan",
+        "gluten"
+      ],
+      [
+        "wheat"
+      ],
+      "Flour tortilla; approximate 45 g piece"
+    ],
+    [
+      "Quinoa",
+      368,
+      14.1,
+      64.2,
+      6.1,
+      7,
+      60,
+      null,
+      "carb",
+      [
+        "vegan"
+      ],
+      [],
+      "Dry"
+    ],
+    [
+      "Broccoli",
+      34,
+      2.8,
+      6.6,
+      0.4,
+      2.6,
+      150,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [],
+      "Raw or frozen, unprepared"
+    ],
+    [
+      "Spinach",
+      23,
+      2.9,
+      3.6,
+      0.4,
+      2.2,
+      100,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [],
+      "Raw"
+    ],
+    [
+      "Mixed vegetables",
+      65,
+      3,
+      12,
+      0.6,
+      4,
+      150,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [
+        "frozen vegetables"
+      ],
+      "Frozen, unprepared"
+    ],
+    [
+      "Carrots",
+      41,
+      0.9,
+      9.6,
+      0.2,
+      2.8,
+      100,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [],
+      "Raw"
+    ],
+    [
+      "Bell peppers",
+      31,
+      1,
+      6,
+      0.3,
+      2.1,
+      100,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [
+        "pepper"
+      ],
+      "Raw"
+    ],
+    [
+      "Green beans",
+      31,
+      1.8,
+      7,
+      0.2,
+      2.7,
+      150,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [],
+      "Raw"
+    ],
+    [
+      "Berries",
+      50,
+      0.8,
+      12,
+      0.4,
+      3,
+      100,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [],
+      "Mixed, fresh or frozen"
+    ],
+    [
+      "Blueberries",
+      57,
+      0.7,
+      14.5,
+      0.3,
+      2.4,
+      100,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [
+        "berries"
+      ],
+      "Fresh or frozen"
+    ],
+    [
+      "Bananas",
+      89,
+      1.1,
+      22.8,
+      0.3,
+      2.6,
+      118,
+      118,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [
+        "banana"
+      ],
+      "Edible portion without peel"
+    ],
+    [
+      "Apples",
+      52,
+      0.3,
+      13.8,
+      0.2,
+      2.4,
+      182,
+      182,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [
+        "apple"
+      ],
+      "With skin, without core"
+    ],
+    [
+      "Lentils",
+      116,
+      9,
+      20,
+      0.4,
+      7.9,
+      150,
+      null,
+      "protein",
+      [
+        "vegan"
+      ],
+      [],
+      "Cooked or canned, drained"
+    ],
+    [
+      "Chia seeds",
+      486,
+      16.5,
+      42.1,
+      30.7,
+      34.4,
+      15,
+      null,
+      "fiber",
+      [
+        "vegan"
+      ],
+      [
+        "chia"
+      ],
+      "Dry"
+    ],
+    [
+      "Peanut butter",
+      588,
+      25,
+      20,
+      50,
+      6,
+      20,
+      null,
+      "fat",
+      [
+        "vegan",
+        "peanut"
+      ],
+      [
+        "peanuts",
+        "peanut"
+      ],
+      "Smooth"
+    ],
+    [
+      "Avocado",
+      160,
+      2,
+      8.5,
+      14.7,
+      6.7,
+      80,
+      null,
+      "fat",
+      [
+        "vegan"
+      ],
+      [],
+      "Edible flesh"
+    ],
+    [
+      "Olive oil",
+      884,
+      0,
+      0,
+      100,
+      0,
+      10,
+      null,
+      "fat",
+      [
+        "vegan"
+      ],
+      [
+        "oil"
+      ],
+      "Oil by weight"
+    ]
+  ],
+  "templates": [
+    [
+      "yogurt-oats",
+      "Greek yogurt oat bowl",
+      [
+        "Breakfast",
+        "Snack"
+      ],
+      5,
+      1,
+      false,
+      [
+        [
+          "Greek yogurt",
+          250,
+          "protein"
+        ],
+        [
+          "Oats",
+          60,
+          "carb"
+        ],
+        [
+          "Blueberries",
+          100,
+          "fiber"
+        ],
+        [
+          "Chia seeds",
+          15,
+          "fiber"
+        ]
+      ],
+      [
+        "Stir yogurt, dry oats, and chia together. Add a splash of water if needed.",
+        "Top with blueberries. Eat immediately or refrigerate overnight."
+      ]
+    ],
+    [
+      "egg-oats",
+      "Eggs & warm oats",
+      [
+        "Breakfast"
+      ],
+      10,
+      1,
+      false,
+      [
+        [
+          "Eggs",
+          100,
+          "protein"
+        ],
+        [
+          "Egg whites",
+          150,
+          "protein"
+        ],
+        [
+          "Oats",
+          60,
+          "carb"
+        ],
+        [
+          "Apples",
+          120,
+          "fiber"
+        ]
+      ],
+      [
+        "Cook oats with water; serve with chopped apple.",
+        "Scramble the egg and egg whites in a nonstick pan until fully set."
+      ]
+    ],
+    [
+      "tofu-potatoes",
+      "Tofu potato skillet",
+      [
+        "Breakfast",
+        "Lunch",
+        "Dinner"
+      ],
+      20,
+      1,
+      true,
+      [
+        [
+          "Tofu",
+          180,
+          "protein"
+        ],
+        [
+          "Potatoes",
+          250,
+          "carb"
+        ],
+        [
+          "Spinach",
+          100,
+          "fiber"
+        ],
+        [
+          "Olive oil",
+          8,
+          "fat"
+        ]
+      ],
+      [
+        "Dice the raw potato and microwave with a little water until tender.",
+        "Heat oil in a pan. Add tofu, potatoes, and spinach; cook until hot. Season to taste."
+      ]
+    ],
+    [
+      "chicken-rice",
+      "Chicken rice bowl",
+      [
+        "Lunch",
+        "Dinner"
+      ],
+      30,
+      2,
+      true,
+      [
+        [
+          "Chicken breast",
+          180,
+          "protein"
+        ],
+        [
+          "Rice",
+          75,
+          "carb"
+        ],
+        [
+          "Broccoli",
+          180,
+          "fiber"
+        ],
+        [
+          "Olive oil",
+          10,
+          "fat"
+        ]
+      ],
+      [
+        "Cook the weighed dry rice with water according to its package.",
+        "Cook chicken thoroughly. Steam broccoli and finish with the measured oil. Divide into portions."
+      ]
+    ],
+    [
+      "turkey-potatoes",
+      "Turkey & sweet potato bowl",
+      [
+        "Lunch",
+        "Dinner"
+      ],
+      30,
+      2,
+      true,
+      [
+        [
+          "Ground turkey",
+          170,
+          "protein"
+        ],
+        [
+          "Sweet potatoes",
+          250,
+          "carb"
+        ],
+        [
+          "Mixed vegetables",
+          150,
+          "fiber"
+        ],
+        [
+          "Olive oil",
+          5,
+          "fat"
+        ]
+      ],
+      [
+        "Dice and roast the sweet potato with the measured oil.",
+        "Brown turkey until thoroughly cooked, heat vegetables, and assemble."
+      ]
+    ],
+    [
+      "tuna-bean",
+      "Tuna & white bean plate",
+      [
+        "Lunch",
+        "Dinner"
+      ],
+      10,
+      1,
+      false,
+      [
+        [
+          "Tuna",
+          140,
+          "protein"
+        ],
+        [
+          "Beans",
+          180,
+          "protein"
+        ],
+        [
+          "Spinach",
+          70,
+          "fiber"
+        ],
+        [
+          "Olive oil",
+          10,
+          "fat"
+        ]
+      ],
+      [
+        "Drain the tuna and beans. Rinse the spinach.",
+        "Combine, dress with the measured oil, and season."
+      ]
+    ],
+    [
+      "lentil-rice",
+      "Lentil rice & greens",
+      [
+        "Breakfast",
+        "Lunch",
+        "Dinner"
+      ],
+      20,
+      1,
+      true,
+      [
+        [
+          "Lentils",
+          200,
+          "protein"
+        ],
+        [
+          "Rice",
+          65,
+          "carb"
+        ],
+        [
+          "Spinach",
+          100,
+          "fiber"
+        ],
+        [
+          "Olive oil",
+          10,
+          "fat"
+        ]
+      ],
+      [
+        "Cook the dry rice in water according to its package.",
+        "Warm the cooked lentils with spinach and measured oil. Serve over rice."
+      ]
+    ],
+    [
+      "tofu-rice",
+      "Tofu & broccoli bowl",
+      [
+        "Lunch",
+        "Dinner"
+      ],
+      20,
+      1,
+      true,
+      [
+        [
+          "Tofu",
+          200,
+          "protein"
+        ],
+        [
+          "Rice",
+          70,
+          "carb"
+        ],
+        [
+          "Broccoli",
+          180,
+          "fiber"
+        ],
+        [
+          "Olive oil",
+          8,
+          "fat"
+        ]
+      ],
+      [
+        "Cook the weighed dry rice with water.",
+        "Pan-cook the tofu with oil. Steam broccoli and assemble."
+      ]
+    ],
+    [
+      "cottage-fruit",
+      "Cottage cheese & fruit",
+      [
+        "Breakfast",
+        "Snack"
+      ],
+      5,
+      1,
+      false,
+      [
+        [
+          "Cottage cheese",
+          250,
+          "protein"
+        ],
+        [
+          "Bananas",
+          118,
+          "carb"
+        ],
+        [
+          "Chia seeds",
+          15,
+          "fiber"
+        ]
+      ],
+      [
+        "Spoon cottage cheese into a bowl. Add sliced banana and chia seeds."
+      ]
+    ],
+    [
+      "bean-avocado",
+      "Bean & avocado bowl",
+      [
+        "Lunch",
+        "Dinner",
+        "Snack"
+      ],
+      10,
+      1,
+      false,
+      [
+        [
+          "Beans",
+          200,
+          "protein"
+        ],
+        [
+          "Avocado",
+          80,
+          "fat"
+        ],
+        [
+          "Mixed vegetables",
+          150,
+          "fiber"
+        ]
+      ],
+      [
+        "Warm the drained beans and frozen vegetables.",
+        "Top with diced avocado and season to taste."
+      ]
+    ],
+    [
+      "peanut-oats",
+      "Banana peanut oats",
+      [
+        "Breakfast",
+        "Snack"
+      ],
+      10,
+      1,
+      true,
+      [
+        [
+          "Oats",
+          70,
+          "carb"
+        ],
+        [
+          "Peanut butter",
+          25,
+          "fat"
+        ],
+        [
+          "Bananas",
+          118,
+          "carb"
+        ],
+        [
+          "Chia seeds",
+          15,
+          "fiber"
+        ]
+      ],
+      [
+        "Cook the dry oats in water.",
+        "Stir in peanut butter and chia. Top with banana."
+      ]
+    ],
+    [
+      "tofu-berry",
+      "Tofu berry chia bowl",
+      [
+        "Breakfast",
+        "Snack"
+      ],
+      5,
+      1,
+      false,
+      [
+        [
+          "Tofu",
+          180,
+          "protein"
+        ],
+        [
+          "Blueberries",
+          120,
+          "fiber"
+        ],
+        [
+          "Chia seeds",
+          15,
+          "fiber"
+        ],
+        [
+          "Bananas",
+          100,
+          "carb"
+        ]
+      ],
+      [
+        "Blend the tofu with berries and banana until smooth.",
+        "Stir in chia and refrigerate until ready to eat."
+      ]
+    ]
+  ]
+}
