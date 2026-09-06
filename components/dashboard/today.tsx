@@ -1,6 +1,8 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useOptimistic } from "react";
 import Link from "next/link";
+import { haptic } from "@/lib/feedback";
+import { DailyCelebration } from "./daily-celebration";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
@@ -82,15 +84,21 @@ function Meter({
   );
 }
 function MealCard({
-  meal,
+  meal: savedMeal,
   foods,
   units,
+  timezone,
 }: {
   meal: Meal;
+  timezone: string;
   foods: DashboardData["foods"];
   units: DashboardData["profile"]["units"];
 }) {
   const { pending, error, run } = useMutation();
+  const [meal, setStatus] = useOptimistic(
+    savedMeal,
+    (m, status: Meal["status"]) => ({ ...m, status }),
+  );
   return (
     <article className={`meal-card ${meal.status}`}>
       <div className="meal-card-top">
@@ -128,16 +136,38 @@ function MealCard({
         <span>{meal.fat}g fat</span>
         <span>{meal.fiber}g fiber</span>
       </div>
+      {savedMeal.completed_at && savedMeal.status === "completed" && (
+        <p className="fine-print muted">
+          Logged{" "}
+          {new Date(savedMeal.completed_at).toLocaleString("en-US", {
+            timeZone: timezone,
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })}
+        </p>
+      )}
+      {pending && (
+        <p role="status" className="fine-print">
+          Saving meal…
+        </p>
+      )}
       <div className="meal-controls">
         <Button
           variant={meal.status === "completed" ? "outline" : "default"}
           disabled={pending}
           onClick={() =>
-            run(() =>
-              changeMeal({
-                id: meal.id,
-                status: meal.status === "completed" ? "planned" : "completed",
-              }),
+            run(
+              async () => {
+                const status =
+                  meal.status === "completed" ? "planned" : "completed";
+                setStatus(status);
+                return changeMeal({ id: meal.id, status });
+              },
+              () => {
+                if (savedMeal.status !== "completed") haptic();
+              },
             )
           }
         >
@@ -243,6 +273,11 @@ export function TodayDashboard({
     : null;
   return (
     <div className="today">
+      <DailyCelebration
+        success={!viewingHistory && summary.completed === summary.total}
+        day={data.date}
+        user={data.profile.id}
+      />
       <section className="dashboard-heading">
         <div className="page-title">
           <span className="eyebrow">
@@ -744,6 +779,7 @@ export function TodayDashboard({
               <MealCard
                 key={meal.id}
                 meal={meal}
+                timezone={data.profile.timezone}
                 foods={data.foods}
                 units={data.profile.units}
               />

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { z } from "zod";
 import type { createClient } from "@/lib/supabase/server";
 import type { CatalogFood, MealTemplate } from "@/lib/meal-plan/types";
@@ -52,7 +53,7 @@ const templateRow = z.object({
     }),
   ),
 });
-export async function getCatalog(
+export const getCatalog = cache(async function getCatalog(
   client: Awaited<ReturnType<typeof createClient>>,
 ): Promise<{ foods: CatalogFood[]; templates: MealTemplate[] }> {
   const [f, m] = await Promise.all([
@@ -97,4 +98,4 @@ export async function getCatalog(
     .parse(m.data)
     .map(({ meal_items, ...t }) => ({ ...t, items: meal_items }));
   return { foods, templates };
-}
+});

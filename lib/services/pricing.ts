@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { z } from "zod";
 import { requireProfile } from "./auth";
 import { DemoPriceProvider } from "@/lib/pricing/providers/demo";
@@ -31,7 +32,7 @@ const offerSchema = z.object({
   is_demo: z.boolean(),
   promotion: z.string().nullable(),
 });
-export async function getDemoPricing() {
+export const getDemoPricing = cache(async function getDemoPricing() {
   const { client, user } = await requireProfile();
   const [offers, history, deals, budget] = await Promise.all([
     client
@@ -77,4 +78,4 @@ export async function getDemoPricing() {
         .parse(deals.data),
     ),
   };
-}
+});

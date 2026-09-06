@@ -1,15 +1,18 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
-export async function requireUser() {
+export const requireUser = cache(async function requireUser() {
   if (!isConfigured()) redirect("/setup");
   const client = await createClient();
   const { data, error } = await client.auth.getUser();
   if (error || !data.user) redirect("/login");
   return { client, user: data.user };
-}
-export async function requireProfile(complete = true) {
+});
+export const requireProfile = cache(async function requireProfile(
+  complete = true,
+) {
   const { client, user } = await requireUser();
   const { data: profile, error } = await client
     .from("profiles")
@@ -22,4 +25,4 @@ export async function requireProfile(complete = true) {
     );
   if (complete && !profile.onboarding_completed_at) redirect("/onboarding");
   return { client, user, profile };
-}
+});

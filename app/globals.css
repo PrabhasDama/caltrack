@@ -3757,3 +3757,16 @@ button:disabled {
 .prep-task ul {list-style:disc;padding-left:20px}
 .scan-review{display:grid;grid-template-columns:1fr 1fr;gap:32px}.scan-review img{width:100%;max-height:600px;object-fit:contain;margin:20px 0}.review-confirm{display:flex;align-items:start;gap:12px;font-size:13px;line-height:1.8}.review-confirm input{width:20px;height:20px;flex-shrink:0;accent-color:var(--primary)}
 @media(max-width:750px){.scan-review{grid-template-columns:1fr}.scan-review img{max-height:300px}}
+
+/* Brief, reduced-motion-aware feedback; no perpetual animation. */
+.receipt-review-line { min-width:0; border:1px solid var(--border,#ddd); border-radius:12px; padding:16px; }
+.scan-review > *, .meal-time-summary > * { min-width:0; }
+.meal-time-summary > div { padding:12px 0; border-bottom:1px solid #dbe1d4; }
+.route-loading .card { height:120px; background:linear-gradient(110deg,#f1f3ec,#e7eddf); margin-top:20px; }
+.daily-celebration { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); width:min(90vw,440px); padding:18px; border-radius:16px; background:#e4edcf; color:#2d482b; z-index:50; box-shadow:0 4px 24px #30452c22; }
+.daily-celebration i { position:absolute; top:0; width:7px; height:10px; background:#799652; animation:celebrate 900ms ease-out both; }
+.daily-celebration i:nth-child(2n) { background:#c5a65d; }
+@keyframes celebrate { from{transform:translateY(0) rotate(0);opacity:1} to{transform:translateY(-100px) rotate(150deg);opacity:0} }
+@keyframes content-arrive { from{opacity:.5;transform:translateY(4px)} to{opacity:1;transform:none} }
+@media (prefers-reduced-motion:no-preference) { .onboarding-step,.daily-celebration,details[open] > :not(summary) { animation:content-arrive 160ms ease-out; } }
+@media (prefers-reduced-motion:reduce) { .daily-celebration i { display:none; animation:none; } }

@@ -87,34 +87,53 @@ const label = (food: QuantityFood, count: number) => {
 };
 const n = (value: number, digits = 1) =>
   value.toLocaleString("en-US", { maximumFractionDigits: digits });
+export function fraction(value: number) {
+  const quarters = Math.round(value * 4),
+    whole = Math.floor(quarters / 4),
+    rest = quarters % 4;
+  return (
+    [whole || "", ["", "1/4", "1/2", "3/4"][rest]].filter(Boolean).join(" ") ||
+    "0"
+  );
+}
 export function formatWeight(grams: number, units: Measurement = "metric") {
-  if (units === "imperial")
-    return grams >= weightGrams.lb
-      ? `${n(grams / weightGrams.lb, 2)} lb`
-      : `${n(grams / weightGrams.oz, 2)} oz`;
-  return grams >= 1000 ? `${n(grams / 1000, 3)} kg` : `${n(grams, 1)} g`;
+  if (!Number.isFinite(grams) || grams < 0) return "—";
+  if (grams === 0) return units === "metric" ? "0 g" : "0 oz";
+  if (units === "imperial") {
+    const ounces = grams / weightGrams.oz;
+    if (ounces < 0.125) return "<1/4 oz";
+    if (Math.abs(ounces / 16 - Math.round(ounces / 16)) < 0.001)
+      return `${Math.round(ounces / 16)} lb`;
+    return `${fraction(ounces)} oz`;
+  }
+  const rounded =
+    Math.round(grams / (grams < 100 ? 5 : 10)) * (grams < 100 ? 5 : 10);
+  if (!rounded) return "<5 g";
+  return rounded >= 1000 ? `${n(rounded / 1000, 2)} kg` : `${rounded} g`;
 }
 export function formatFoodQuantity(
   grams: number,
-  food: QuantityFood | undefined,
+  food?: QuantityFood | null,
   units: Measurement = "metric",
   shopping = false,
 ) {
-  if (!food) return formatWeight(grams, units);
+  if (!food || !Number.isFinite(grams) || grams <= 0)
+    return formatWeight(grams, units);
   const piece = food.natural_unit_g || food.piece_g;
   if (piece) {
-    const count = grams / piece;
-    const whole = shopping ? Math.ceil(count - 0.00001) : Math.round(count);
-    if (shopping || Math.abs(count - whole) < 0.0001)
-      return `${whole} ${label(food, whole)}`;
-    return `${formatWeight(grams, units)} (about ${whole} ${label(food, whole)})`;
+    const count = shopping
+      ? Math.ceil(grams / piece - 0.00001)
+      : Math.round((grams / piece) * 4) / 4;
+    if (!count) return `<1/4 ${label(food, 1)}`;
+    return `${fraction(count)} ${label(food, count <= 1 ? 1 : count)}`;
   }
   if (food.name === "Olive oil") {
-    if (units === "imperial") {
-      const tsp = grams / 4.5;
-      return `${n(tsp / 3, 2)} tbsp (about ${n(tsp, 1)} tsp; ${n(grams, 1)} g)`;
-    }
-    return `${n(grams / 0.91, 1)} mL (about ${n(grams, 1)} g)`;
+    const tsp = Math.round((grams / 4.5) * 4) / 4;
+    if (!tsp) return "<1/4 tsp";
+    return tsp >= 3 &&
+      Math.abs((tsp / 3) * 4 - Math.round((tsp / 3) * 4)) < 0.001
+      ? `${fraction(tsp / 3)} tbsp`
+      : `${fraction(tsp)} tsp`;
   }
   return formatWeight(grams, units);
 }

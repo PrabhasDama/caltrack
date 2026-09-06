@@ -1,3 +1,50 @@
+# Phase 7–8 completion / QA checkpoint — September 6, 2026
+
+Scope: surgical completion and polish of Phases 7–8. Phase 9/advanced optimization and Phase 10 remain untouched. Do not restart completed work.
+
+## This run
+
+- Reviewed receipt flow at `/scan/receipt`, linked from Budget: private image → optional extraction → editable lines/food/package/grocery matches → mandatory confirmation. No stock/spending write before review. One SQL transaction creates the receipt, lines, finished shopping-session ledger, additive pantry stock, selected grocery fulfillments, and private product-price references. Upload UUID is idempotent. Exact total validation rolls back all writes on mismatch. Unknown items/tax may stay spending-only; discounted paid prices are entered on the item. Matched groceries require a full gram-based requirement. Stocked receipts use existing correction/undo and cannot be edited/deleted through the manual receipt editor. Receipt price observations remain private and refer to actual receipt lines; no shared/demo offer pollution. A dedicated price-history browsing UI is not added.
+- Production HTTP extraction adapter for labels and receipts: HTTPS-only configurable gateway, server-only bearer credential, raw allowed image upload, 20-second timeout, 128 KB response cap, validated envelope, confidence filtering at 0.85, no automatic confirmation. Every failure allows manual review. No OCR service is configured or called. README and .env.example document `EXTRACTION_SERVICE_URL`, `EXTRACTION_SERVICE_TOKEN`, and the exact gateway payload/response contract. The operator must provide an actual OCR vendor gateway and credentials; this adapter alone does not perform OCR. Reopening a confirmed label or receipt shows saved state instead of offering a silent overwrite.
+- Recipe-based prep replaces one task per ingredient. Only meaningful recipe steps generate tasks; ready oil/yogurt/bread/protein-powder ingredients and last-minute serving tasks are excluded. Exact compatible preparation text/food sets consolidate deterministically; differing preparations remain separate. Includes related meals, ingredient weights, times and saved completion. Fixed visual QA finding where serving references mislabeled rice/tofu as steamed and pasta as wash/chop. Old prep snapshots remain intact and are identified as legacy. Task completion never consumes stock. Matching is deliberately conservative: differently worded compatible recipes may remain separate, and times are planning estimates. Pantry availability text is scoped to the first ingredient rather than claiming all multi-ingredient tasks are stocked.
+- Shared quantity formatting uses practical gram increments, quarter-ounce increments, natural-unit fractions and teaspoon/tablespoon amounts. No “about 0” counts or redundant oil unit strings. Canonical historical quantities/nutrition stay intact; new plan portions still use the existing normalization/macro recalculation. Country defaults and explicit overrides retained.
+- Real completion timestamps on new meal status transitions. Same-status retry preserves time; undo clears active time while retaining audit events; recompletion records a fresh time. Historical unknown times stay unknown. Today displays the recorded local time. Weekly progress summarizes sufficiently sampled completion/logging times in profile timezone with midnight-aware ranges and prior-week shifts. These are logging times, not inferred eating times for retrospective entries.
+- Request-scoped auth/profile/catalog/pricing memoization, removal of redundant client refresh after server revalidation, independent Progress reads in parallel instead of loading Today first, app route loading feedback, optimistic meal/prep checkmarks with rollback, immediate save states. Private data is never globally cached. Existing completed-meal swap explanation/disabled workflow retained.
+- Once-per-user/day daily checklist celebration; feature-detected subtle haptics on meaningful meal/prep/shopping success; short onboarding/content transitions with reduced-motion support. No added animation dependency.
+
+## Migrations
+
+Forward 018 reviewed receipts/private price observations; 019 completion timestamps/audit; 020 account-deletion audit guard. 018–020 applied. Account cleanup succeeded after 020. The final cleanup initially exposed an audit insert during profile deletion; 020 prevents recreating events for a removed profile. No applied migration was edited, no reset, no historical completion times fabricated.
+
+## Verification
+
+- 125 automated tests in 11 files pass, including receipt transaction/retry/rollback, full grocery/product-price linking, mandatory review, owner isolation, timestamp/retry/undo/recompletion/account deletion, prep exclusions/consolidation/method naming, natural fractions, midnight/week timing, provider confidence/error fallback, and once-only celebration.
+- TypeScript, lint, production build and diff whitespace checks pass. Final changes after the last build are SQL/test/documentation only.
+- All five live rollback SQL suites passed: security, phases_4_6_security, phase65_security, phase78_security, receipt_completion_security.
+- Browser first pass: core scenario passed; second run all four phase65/phase78/receipt scenarios passed. Verified photos/upload/privacy, label upload/manual review/private food save, receipt no-write-before-confirmation, stock/grocery updates, reopening without duplicate purchase, and prep optimistic rollback after a simulated server failure. Desktop/mobile screenshots reviewed for progress/prep/receipt; receipt/photo fixtures are a one-pixel PNG and establish upload/access behavior, not real OCR quality.
+- Final fresh-account run: core, phase65, progress/photos/prep and label passed. Receipt confirmation passed; rollback assertion hit an ambiguous alert locator (Next route announcer). Locator narrowed to the prep error; targeted receipt/rollback rerun PASSED (20.7 seconds). All five browser scenarios now pass across the final run and targeted rerun. Final QA account, private files and records were removed successfully.
+
+## Performance findings
+
+Measured local authenticated full-page responses, one warm-up + three samples/route; medians ms before → after: Today 354→300, Plan 331→372, Groceries 442→405, Pantry 252→347, Budget 366→343, Progress 459→346, Prep 441→439. After measurements overlapped browser QA; these are diagnostic samples, not a controlled benchmark or proof all routes improved. Local warm requests did not consistently reproduce 2–3 seconds. No deployment URL/cold-start telemetry was available, so Vercel-specific latency is unverified. README records method, causes and changes; scripts/profile-routes.mjs reproduces local checks with a disposable account.
+
+## Remaining practical limits / next work
+
+- Configure a real OCR gateway externally before claiming automatic extraction works. No paid API calls were made here.
+- Recipe prep conservatively groups matching text; times do not account for batch size/equipment and may overestimate sequential work. Old sessions need explicit replacement to get new tasks. No stock reservations or deductions on prep.
+- Receipt discounts are reflected in paid line prices; negative discount lines and partial grocery fulfillment are not supported. Price observations are stored/exported privately; there is no new dedicated browsing UI.
+- Meal analytics reflect completion/logging time. Historical timestamps remain unknown, and retrospective entry is not an exact meal-time diary.
+- Pending failed uploads can retain metadata until deletion/account cleanup. No background cleanup job is introduced.
+- Remote deployment performance and device-native vibration remain unverified. Browser rollback is tested; actual haptic hardware support varies.
+
+## Resource boundary
+
+This run began with the included window available. Credit baseline 2476.7306330000 has remained unchanged; no usage reset or paid credits authorized. At 68% work switched to final verification/cleanup, preserving room below the hard 85% cutoff. Final usage reading: 85%; credit balance unchanged at 2476.7306330000. No reset. Development stopped; only final verification/QA cleanup performed. Temporary QA account/files/records removed. Generated test-results and timing scratch files removed.
+
+---
+
+## Previous checkpoint (historical, superseded by the status above)
+
 # Phase 7–8 checkpoint — PARTIAL, STOPPED AT USAGE BOUNDARY
 
 September 6, 2026. Latest user request authorizes Phases 7–8 only. PHASE 9 ADVANCED OPTIMIZATION HAS NOT BEEN IMPLEMENTED. Phase 10 is untouched.

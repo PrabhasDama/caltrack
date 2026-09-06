@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useOptimistic } from "react";
 import Link from "next/link";
+import { haptic } from "@/lib/feedback";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useMutation } from "@/components/dashboard/use-mutation";
@@ -26,7 +27,8 @@ export function PrepWorkspace({
           <span className="eyebrow">A LITTLE PREPARATION GOES A LONG WAY</span>
           <h1>Make room for an easier week.</h1>
           <p>
-            Shared ingredients, grouped once. Your saved meals lead the way.
+            Cooking tasks from your saved recipes, grouped when preparations
+            match.
           </p>
         </div>
         <Dialog
@@ -41,7 +43,7 @@ export function PrepWorkspace({
           </DialogTrigger>
           <DialogContent
             title="Plan a little prep"
-            description="Group ingredients from upcoming saved, uneaten meals."
+            description="Batch compatible cooking steps from upcoming saved, uneaten meals."
           >
             <form
               className="form-stack"
@@ -104,7 +106,7 @@ export function PrepWorkspace({
         <section className="card progress-empty">
           <h2>Your next week can start here.</h2>
           <p>
-            Save a meal plan, then group its ingredients into a prep session.
+            Save a meal plan, then build a cooking checklist from its recipes.
           </p>
         </section>
       )}
@@ -122,7 +124,16 @@ function Session({
   context: PlanContext;
 }) {
   const { pending, error, run } = useMutation();
-  const completed = s.tasks.filter((t) => t.completed).length;
+  const [tasks, updateTask] = useOptimistic(
+    s.tasks,
+    (current, change: { key: string; completed: boolean }) =>
+      current.map((t) =>
+        (t.key || t.food_id) === change.key
+          ? { ...t, completed: change.completed }
+          : t,
+      ),
+  );
+  const completed = tasks.filter((t) => t.completed).length;
   return (
     <section className="card prep-session">
       <div className="section-heading">
@@ -147,6 +158,12 @@ function Session({
           plan.
         </p>
       )}
+      {s.tasks.some((t) => !t.key) && (
+        <p className="notice">
+          This older session contains ingredient checklists. Create a new
+          session for cooking tasks from your current recipes.
+        </p>
+      )}
       <p className="fine-print muted">
         Times are planning estimates. Follow the related recipes for cooking
         methods and doneness. Group matching preparations and store each food
@@ -158,7 +175,7 @@ function Session({
         </p>
       )}
       <div>
-        {s.tasks.map((task) => {
+        {tasks.map((task) => {
           const food = context.foods.find((f) => f.id === task.food_id),
             stock = prepAvailability(
               task,
@@ -166,33 +183,64 @@ function Session({
               [s.local_date, context.today].sort().at(-1)!,
             );
           return (
-            <article className="prep-task" key={task.food_id}>
+            <article className="prep-task" key={task.key || task.food_id}>
               <label>
                 <input
                   type="checkbox"
                   checked={task.completed}
                   disabled={pending}
-                  onChange={(e) =>
-                    run(() =>
-                      setPrepTask({
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    run(async () => {
+                      updateTask({
+                        key: task.key || task.food_id,
+                        completed: checked,
+                      });
+                      const result = await setPrepTask({
                         id: s.id,
-                        food: task.food_id,
-                        completed: e.target.checked,
+                        food: task.key || task.food_id,
+                        completed: checked,
                         expected: s.updated_at,
-                      }),
-                    )
-                  }
+                      });
+                      if (
+                        !result.error &&
+                        checked &&
+                        completed === tasks.length - 1
+                      )
+                        haptic();
+                      return result;
+                    });
+                  }}
                 />
-                <strong>Prepare {task.name}</strong>
+                <strong>
+                  {task.key ? task.name : `Legacy task: ${task.name}`}
+                </strong>
               </label>
               <strong>
-                {formatFoodQuantity(task.quantity_g, food, context.units)}
+                {(
+                  task.ingredients || [
+                    { food_id: task.food_id, quantity_g: task.quantity_g },
+                  ]
+                )
+                  .map(
+                    (i) =>
+                      `${formatFoodQuantity(
+                        i.quantity_g,
+                        context.foods.find((f) => f.id === i.food_id),
+                        context.units,
+                      )} ${context.foods.find((f) => f.id === i.food_id)?.name || ""}`,
+                  )
+                  .join(" · ")}{" "}
+                · ~{task.minutes} min
               </strong>
-              <p>{task.instruction}</p>
+              <p>
+                Batch for {task.meal_ids.length} planned meal
+                {task.meal_ids.length === 1 ? "" : "s"}. {task.instruction}
+              </p>
               <p className="fine-print">
                 {stock.missing
                   ? `Missing ${formatFoodQuantity(stock.missing, food, context.units, true)} · check your grocery list`
-                  : `Enough usable pantry stock for this task`}{" "}
+                  : `Enough usable pantry stock for the first ingredient`}{" "}
                 · {task.meal_ids.length} related meals
               </p>
               <details>

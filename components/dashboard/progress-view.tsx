@@ -1,4 +1,5 @@
 "use client";
+import { weeklyMealTimes, clockLabel } from "@/lib/progress/meal-times";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -125,6 +126,37 @@ export function ProgressView({ data }: { data: ProgressData }) {
           </div>
         ))}
       </div>
+      <section className="card meal-time-summary">
+        <h2>Your meal logging rhythm</h2>
+        <p className="muted">
+          Actual completion times in {data.profile.timezone}. A pattern needs at
+          least three timed meals per slot in a week. Planned times and older
+          entries without timestamps are excluded.
+        </p>
+        {weeklyMealTimes(
+          data.analytics.meals,
+          data.today,
+          data.profile.timezone,
+        ).map((t) => (
+          <div key={t.slot}>
+            <strong>{t.slot}</strong>
+            <p>
+              {t.current
+                ? `${clockLabel(t.current.typical)} typical · ${clockLabel(t.current.earliest)}–${clockLabel(t.current.latest)} range · ${t.current.count} logged`
+                : "Not enough timed meals this week yet."}
+            </p>
+            {t.shift !== null && (
+              <p className="fine-print">
+                {Math.abs(t.shift) < 15
+                  ? "Similar timing to last week."
+                  : `Typically ${Math.round(Math.abs(t.shift))} minutes ${t.shift > 0 ? "later" : "earlier"} than last week.`}{" "}
+                This is a reflection of your routine, with no preferred
+                schedule.
+              </p>
+            )}
+          </div>
+        ))}
+      </section>
       <section className="card goal-trajectory">
         <div>
           <span className="status-pill">{trajectory.state}</span>

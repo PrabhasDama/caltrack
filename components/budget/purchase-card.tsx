@@ -90,7 +90,7 @@ export function PurchaseCard({
         </ul>
         {purchase.notes && <p>{purchase.notes}</p>}
       </details>
-      {purchase.origin === "shopping" ? (
+      {purchase.origin !== "manual" ? (
         <Link className="button" href="/groceries">
           Shopping receipt · corrections & reversal →
         </Link>

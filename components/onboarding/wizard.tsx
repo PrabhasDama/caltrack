@@ -194,7 +194,7 @@ export function OnboardingWizard({
         <div className="onboarding-progress">
           <span style={{ width: `${(step / 9) * 100}%` }} />
         </div>
-        <section className="wizard-body">
+        <section className="wizard-body onboarding-step" key={step}>
           <div className="wizard-icon">
             <Icon size={23} />
           </div>

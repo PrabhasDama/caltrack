@@ -1,4 +1,5 @@
 "use client";
+import { haptic } from "@/lib/feedback";
 import { useState } from "react";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -125,7 +126,7 @@ export function SessionPanel({
         {session ? (
           <Button
             disabled={pending}
-            onClick={() => run(() => finishShopping(session.id))}
+            onClick={() => run(() => finishShopping(session.id), haptic)}
           >
             Finish shopping
           </Button>

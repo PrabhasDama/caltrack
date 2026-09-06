@@ -52,6 +52,176 @@ afterEach(async () => {
   await db.exec("rollback;reset role;");
 });
 describe("Postgres ownership and transactions", () => {
+  it("confirms a reviewed receipt once with stock, budget and a reversible ledger", async () => {
+    await asUser(alice);
+    await db.exec(
+      `insert into public.user_uploads(id,user_id,bucket,path,local_date,status) values('${meal}','${alice}','receipts','${alice}/${meal}.png',current_date-1,'ready')`,
+    );
+    const review = {
+      store: "Receipt store",
+      date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+      currency: "USD",
+      total: 5,
+      items: [
+        { name: "Ingredient", quantity: 1, price: 5, foodId: food, grams: 500 },
+      ],
+    };
+    for (let i = 0; i < 3; i++)
+      await db.query("select public.confirm_reviewed_receipt($1,$2,true)", [
+        meal,
+        JSON.stringify(review),
+      ]);
+    expect(await count("purchases")).toBe(1);
+    expect(await count("shopping_fulfillments")).toBe(1);
+    expect(
+      Number(
+        (
+          await db.query<{ quantity_g: number }>(
+            "select quantity_g from public.pantry_items",
+          )
+        ).rows[0].quantity_g,
+      ),
+    ).toBe(500);
+    expect(
+      Number(
+        (
+          await db.query<{ total: number }>(
+            "select total from public.purchases",
+          )
+        ).rows[0].total,
+      ),
+    ).toBe(5);
+    const event = (
+      await db.query<{ id: string }>(
+        "select id from public.shopping_fulfillments",
+      )
+    ).rows[0].id;
+    await asUser(bob);
+    expect(await count("purchases")).toBe(0);
+    expect(await count("shopping_fulfillments")).toBe(0);
+    await asUser(alice);
+    await db.query("select public.undo_shopping_purchase($1)", [event]);
+    await db.query("select public.undo_shopping_purchase($1)", [event]);
+    expect(
+      Number(
+        (
+          await db.query<{ quantity_g: number }>(
+            "select quantity_g from public.pantry_items",
+          )
+        ).rows[0].quantity_g,
+      ),
+    ).toBe(0);
+  });
+  it("links confirmed receipt products, groceries and private price history atomically", async () => {
+    const p = (
+      await db.query<{ id: string; food_id: string; package_grams: number }>(
+        "select id,food_id,package_grams from public.retail_products where is_active and food_id is not null and package_grams>100 limit 1",
+      )
+    ).rows[0];
+    await asUser(alice);
+    await db.exec(
+      `insert into public.user_uploads(id,user_id,bucket,path,local_date,status) values('${meal}','${alice}','receipts','${alice}/${meal}.png',current_date-1,'ready');insert into public.shopping_lists(user_id,start_date,end_date) values('${alice}',current_date,current_date);insert into public.shopping_list_items(user_id,list_id,food_id,name,amount,unit,source) select '${alice}',id,'${p.food_id}','Product',100,'g','manual' from public.shopping_lists`,
+    );
+    const item = (
+      await db.query<{ id: string; updated_at: string }>(
+        "select id,updated_at from public.shopping_list_items",
+      )
+    ).rows[0];
+    await db.query("select public.confirm_reviewed_receipt($1,$2,true)", [
+      meal,
+      JSON.stringify({
+        store: "Product store",
+        date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+        currency: "USD",
+        total: 5,
+        items: [
+          {
+            name: "Product",
+            quantity: 1,
+            price: 5,
+            foodId: p.food_id,
+            productId: p.id,
+            grams: Number(p.package_grams),
+            shoppingId: item.id,
+            expected: item.updated_at,
+          },
+        ],
+      }),
+    ]);
+    expect(
+      (
+        await db.query<{ fulfillment: string }>(
+          "select fulfillment from public.shopping_list_items",
+        )
+      ).rows[0].fulfillment,
+    ).toBe("purchased");
+    expect(await count("receipt_price_observations")).toBe(1);
+    await asUser(bob);
+    expect(await count("receipt_price_observations")).toBe(0);
+  });
+  it("rolls back every receipt write when totals disagree", async () => {
+    await asUser(alice);
+    await db.exec(
+      `insert into public.user_uploads(id,user_id,bucket,path,local_date,status) values('${meal}','${alice}','receipts','${alice}/${meal}.png',current_date-1,'ready');savepoint receipt_attempt`,
+    );
+    await expect(
+      db.query("select public.confirm_reviewed_receipt($1,$2,true)", [
+        meal,
+        JSON.stringify({
+          store: "Store",
+          date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+          currency: "USD",
+          total: 7,
+          items: [
+            { name: "Food", quantity: 1, price: 5, foodId: food, grams: 100 },
+          ],
+        }),
+      ]),
+    ).rejects.toThrow("Receipt total");
+    await db.exec("rollback to receipt_attempt");
+    expect(await count("purchases")).toBe(0);
+    expect(await count("pantry_items")).toBe(0);
+  });
+  it("requires explicit receipt confirmation", async () => {
+    await asUser(alice);
+    await expect(
+      db.query("select public.confirm_reviewed_receipt($1,'{}',false)", [meal]),
+    ).rejects.toThrow("Review and confirm");
+  });
+  it("allows account deletion to remove completion audit rows", async () => {
+    await db.exec(
+      `insert into public.daily_meal_logs(id,user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients,status) values('${meal}','${alice}',current_date,'Lunch','Test',100,10,10,1,1,'[]','completed');delete from auth.users where id='${alice}'`,
+    );
+    expect(await count("meal_completion_events")).toBe(0);
+  });
+  it("records completion time once, preserves its audit, and timestamps recompletion", async () => {
+    await db.exec(
+      `insert into public.daily_meal_logs(id,user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients) values('${meal}','${alice}',current_date-1,'Lunch','Test',100,10,10,1,1,'[]')`,
+    );
+    await asUser(alice);
+    await db.query("select public.set_meal_status($1,'completed')", [meal]);
+    const timestamp = async () =>
+      (
+        await db.query<{ completed_at: string }>(
+          "select completed_at from public.daily_meal_logs",
+        )
+      ).rows[0].completed_at;
+    const first = await timestamp();
+    expect(first).toBeTruthy();
+    await db.query("select public.set_meal_status($1,'completed')", [meal]);
+    expect(await timestamp()).toEqual(first);
+    expect(await count("meal_completion_events")).toBe(1);
+    await db.query("select public.set_meal_status($1,'planned')", [meal]);
+    expect(await timestamp()).toBeNull();
+    expect(await count("meal_completion_events")).toBe(2);
+    await db.query("select public.set_meal_status($1,'completed')", [meal]);
+    expect(new Date(await timestamp()).getTime()).toBeGreaterThanOrEqual(
+      new Date(first).getTime(),
+    );
+    expect(await count("meal_completion_events")).toBe(3);
+    await asUser(bob);
+    expect(await count("meal_completion_events")).toBe(0);
+  });
   it("saves reviewed label nutrition once and isolates the private food", async () => {
     await asUser(alice);
     await db.exec(

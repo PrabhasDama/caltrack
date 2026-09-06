@@ -62,6 +62,9 @@ export default async function Budget({
           </Button>
         </PurchaseEditor>
       </header>
+      <Link href="/scan/receipt" className="button">
+        Scan and review a receipt →
+      </Link>
       <section className="card budget-toolbar">
         <form>
           <label className="field">

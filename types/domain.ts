@@ -32,6 +32,7 @@ export type Workout = {
   notes: string;
 };
 export type Meal = Macros & {
+  completed_at?: string | null;
   id: string;
   local_date: string;
   slot: "Breakfast" | "Lunch" | "Dinner" | "Snack";

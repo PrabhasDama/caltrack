@@ -177,3 +177,31 @@ Cooking temperature guidance for the curated recipes was checked against [FoodSa
 ## Phase 7–8 partial checkpoint
 
 Progress analytics, optional measurements, private progress photos, meal prep and reviewed nutrition-label storage are implemented. Automatic extraction is unconfigured and uses explicit manual review. Receipt scanning/confirmation remains unfinished. The run stopped at the usage boundary with 111 automated tests, lint, TypeScript, production build and new live privacy checks passing; final browser acceptance is incomplete. See CHECKPOINT.md before resuming. Phase 9 advanced optimization has not been implemented.
+
+## Phase 7–8 reviewed scanning
+
+`/scan/receipt` uploads privately, obtains an optional candidate, and requires editable review and explicit confirmation. The total must equal reviewed lines. Matched foods require a confirmed total gram weight. Unknown items and tax can be spending-only lines; enter discounts in the actual paid item price. Grocery matches must cover a whole gram-based requirement. The upload UUID commits the receipt, stock, fulfillment ledger and private product-price references once. Reopen confirmed images to see their saved state. Corrections and stock reversal use Groceries → recent receipts. Stocked receipts cannot be deleted through the manual editor. Product-linked price observations refer to receipt lines, retaining corrections and voids without altering shared offers.
+
+Automatic extraction requires an operator-provided HTTPS OCR gateway. Set server-only `EXTRACTION_SERVICE_URL` and `EXTRACTION_SERVICE_TOKEN` in `.env.local` or the deployment environment. Do not prefix either with `NEXT_PUBLIC_`. No gateway is configured here; no external OCR service was called during QA. Manual review remains available.
+
+Gateway contract: POST raw JPEG/PNG/WebP bytes (max 6 MiB), `Authorization: Bearer <token>`, and `X-Extraction-Kind: label` or `receipt`. Return JSON like `{ "fields": { "name": { "value": "Example", "confidence": 0.99 } } }`. Each field has `value` (string, finite number, or null) and numeric confidence in [0,1]. Label names: `name`, `servingSize`, `servingUnit`, `servingGrams`, `servingsPerContainer`, `calories`, `protein`, `carbs`, `fat`, `fiber`, `sugar`, `sodium`. Nutrition is per labeled serving; sodium is mg, other nutrients grams. Receipt fields: `store`, ISO `date`, `total`; `items` is an array of field maps with `name`, `quantity`, `price` (per purchased unit). Values below 0.85 confidence become blank. The gateway must return null for unreadable fields, never invent nutrition, and supply its own OCR vendor integration, credentials and privacy retention policy. The app rejects redirects, times out after 20 seconds, caps responses at 128 KB, validates output, and falls back to manual review. Extraction never calls confirmation.
+
+New meal completions receive a server timestamp. Retries preserve it; undo clears the active timestamp and retains event history; recompletion receives a new time. Historical unknown times are not backfilled. Weekly logging rhythms use the profile timezone, require three samples per slot per week, and handle midnight circularly. They describe logging/completion times, which may differ from eating times for retrospective entry.
+
+New prep sessions derive tasks from recipe cooking steps and merge matching preparation text and food sets. Different methods stay separate. Old ingredient checklists remain intact and are labeled legacy. Prep completion never deducts stock. Display quantities are rounded; historical canonical grams/nutrition remain intact. Newly generated plans keep practical-portion normalization and recalculate macros from their canonical portions.
+
+### Local responsiveness measurements
+
+Measured authenticated full-page responses against the local development server using `scripts/profile-routes.mjs`: one warm-up and three samples per route, median in milliseconds. The second pass overlapped browser QA, so these are diagnostic samples, not a controlled benchmark. No deployment URL or Vercel cold-start telemetry was available.
+
+| Route | Before | After |
+|---|---:|---:|
+| /dashboard | 354 | 300 |
+| /plan | 331 | 372 |
+| /groceries | 442 | 405 |
+| /pantry | 252 | 347 |
+| /budget | 366 | 343 |
+| /progress | 459 | 346 |
+| /prep | 441 | 439 |
+
+Changes: React request-scoped memoization deduplicates profile/auth/catalog/pricing reads without cross-user persistence. Progress now requests its own ten datasets in parallel instead of first loading Today’s twelve queries. Mutations use their server revalidation response instead of an additional router refresh. Meal/prep checkmarks update optimistically and reconcile or roll back on failure; save states are immediate. An app-level loading boundary supports dynamic navigation with existing Next links. A three-sample local run cannot establish deployed latency or cold-start causes. Daily checklist celebrations persist once per user/date; vibration is feature-detected and reduced-motion preferences are honored.

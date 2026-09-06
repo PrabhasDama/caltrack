@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { UploadForm } from "@/components/uploads/upload-form";
 import { PrivateImage } from "@/components/uploads/private-image";
 import { Button } from "@/components/ui/button";
@@ -21,12 +20,12 @@ export function LabelScanner({
   const [id, setId] = useState<string | null>(null),
     [pending, setPending] = useState(false),
     [error, setError] = useState(""),
-    [saved, setSaved] = useState(false),
-    router = useRouter();
+    [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false),
     [candidate, setCandidate] = useState<LabelCandidate>({}),
     [message, setMessage] = useState("");
   async function openReview(next: string) {
+    setId(next);
     setLoading(true);
     setError("");
     try {
@@ -38,10 +37,12 @@ export function LabelScanner({
           : `Candidate values from ${r.provider}. Verify and edit every field before saving.`,
       );
       setId(next);
-      setSaved(false);
-      router.refresh();
+      setSaved(r.alreadySaved);
     } catch {
-      setError("Could not load the image for review. Please try again.");
+      setCandidate({});
+      setMessage(
+        "Automatic extraction is unavailable. Enter and review the label manually.",
+      );
     } finally {
       setLoading(false);
     }
@@ -150,7 +151,6 @@ export function LabelScanner({
                 if (r.error) setError(r.error);
                 else {
                   setSaved(true);
-                  router.refresh();
                 }
               } catch {
                 setError(

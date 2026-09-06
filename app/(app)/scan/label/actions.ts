@@ -3,7 +3,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/services/auth";
 import { normalizeReviewedLabel } from "@/lib/scanning/review";
-import { labelProvider } from "@/lib/scanning/providers";
+import { labelProvider, type LabelCandidate } from "@/lib/scanning/providers";
 export async function extractLabel(upload: string) {
   z.string().uuid().parse(upload);
   const { client, user } = await requireProfile();
@@ -16,12 +16,25 @@ export async function extractLabel(upload: string) {
     .eq("status", "ready")
     .single();
   if (!row) throw new Error("Label image not found.");
+  const previous = await client
+    .from("foods")
+    .select("reviewed_label")
+    .eq("id", upload)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (previous.data)
+    return {
+      status: "extracted" as const,
+      candidate: previous.data.reviewed_label as LabelCandidate,
+      provider: "your saved review",
+      alreadySaved: true,
+    };
   const { data, error } = await client.storage
     .from("nutrition-labels")
     .download(row.path);
   if (error || !data)
     throw new Error("Label image could not be loaded. Please retry.");
-  return labelProvider.extract(data);
+  return { ...(await labelProvider.extract(data)), alreadySaved: false };
 }
 export async function saveReviewedLabel(upload: string, input: unknown) {
   try {

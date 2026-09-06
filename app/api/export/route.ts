@@ -14,6 +14,8 @@ export async function GET() {
     "weight_entries",
     "body_measurements",
     "user_uploads",
+    "receipt_price_observations",
+    "meal_completion_events",
     "meal_prep_sessions",
     "workouts",
     "daily_meal_logs",

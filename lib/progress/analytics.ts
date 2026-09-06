@@ -139,7 +139,7 @@ export function weeklySummary(input: {
   );
   const meals = input.meals.filter((m) => inWeek(m.local_date));
   const average = Object.fromEntries(
-    (Object.keys(input.targets) as (keyof Macros)[]).map((k) => [
+    (["calories", "protein", "carbs", "fat", "fiber"] as (keyof Macros)[]).map((k) => [
       k,
       days.length ? days.reduce((s, d) => s + d[k], 0) / days.length : null,
     ]),
