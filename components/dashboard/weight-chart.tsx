@@ -12,29 +12,27 @@ import {
 import { fromKg } from "@/lib/nutrition/units";
 import { formatDate } from "@/lib/date";
 import type { WeightEntry } from "@/types/domain";
+import { weightTrend } from "@/lib/progress/analytics";
 export function WeightChart({
   entries,
   units,
   goal,
   compact = false,
+  since,
 }: {
   entries: WeightEntry[];
   units: "imperial" | "metric";
   goal?: number;
   compact?: boolean;
+  since?: string;
 }) {
-  const points = entries.map((w, i) => ({
-    date: w.local_date,
-    weight: Number(fromKg(w.weight_kg, units).toFixed(1)),
-    trend: Number(
-      (
-        entries
-          .slice(Math.max(0, i - 6), i + 1)
-          .reduce((s, e) => s + fromKg(e.weight_kg, units), 0) /
-        Math.min(i + 1, 7)
-      ).toFixed(1),
-    ),
-  }));
+  const points = weightTrend(entries)
+    .filter((w) => !since || w.local_date >= since)
+    .map((w) => ({
+      date: w.local_date,
+      weight: Number(fromKg(w.weight_kg, units).toFixed(1)),
+      trend: Number(fromKg(w.trend, units).toFixed(1)),
+    }));
   return (
     <div
       style={{ height: compact ? 80 : 280, width: "100%", minWidth: 0 }}
@@ -82,6 +80,7 @@ export function WeightChart({
               />
               {goal && (
                 <ReferenceLine
+                  ifOverflow="extendDomain"
                   y={fromKg(goal, units)}
                   stroke="var(--muted)"
                   strokeDasharray="3 3"
@@ -102,7 +101,7 @@ export function WeightChart({
           {!compact && (
             <Line
               type="monotone"
-              name="7-entry average"
+              name="7-day trend"
               dataKey="trend"
               stroke="var(--primary)"
               strokeWidth={2}

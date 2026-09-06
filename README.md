@@ -172,3 +172,8 @@ The connected shopping transaction, independent preferences, practical recipe po
 Migrations 009–013 add shopping session/fulfillment ledgers, section-based preference writes, recipe/portion metadata, new package references preserving historical products, and whole discrete purchase quantities. Demo estimates retain their provenance and are called out in budget totals. Receipt-photo extraction and nutrition-label extraction remain deferred; the receipt metadata field is architecture only.
 
 Cooking temperature guidance for the curated recipes was checked against [FoodSafety.gov’s safe minimum temperature chart](https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures).
+
+
+## Phase 7–8 partial checkpoint
+
+Progress analytics, optional measurements, private progress photos, meal prep and reviewed nutrition-label storage are implemented. Automatic extraction is unconfigured and uses explicit manual review. Receipt scanning/confirmation remains unfinished. The run stopped at the usage boundary with 111 automated tests, lint, TypeScript, production build and new live privacy checks passing; final browser acceptance is incomplete. See CHECKPOINT.md before resuming. Phase 9 advanced optimization has not been implemented.

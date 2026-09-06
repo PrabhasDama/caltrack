@@ -31,6 +31,10 @@ beforeAll(async () => {
   await db.exec(
     `create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth,public to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;`,
   );
+  // Storage's service-owned tables/functions are provided by Supabase in production.
+  await db.exec(
+    `create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets(id),name text);alter table storage.objects enable row level security;grant usage on schema storage to authenticated,anon;grant select,insert,delete on storage.objects to authenticated;create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1,'/') $$;`,
+  );
   for (const file of readdirSync("supabase/migrations")
     .filter((f) => f.endsWith(".sql"))
     .sort())
@@ -48,6 +52,106 @@ afterEach(async () => {
   await db.exec("rollback;reset role;");
 });
 describe("Postgres ownership and transactions", () => {
+  it("saves reviewed label nutrition once and isolates the private food", async () => {
+    await asUser(alice);
+    await db.exec(
+      `insert into public.user_uploads(id,user_id,bucket,path,local_date,status) values('${meal}','${alice}','nutrition-labels','${alice}/${meal}.png','2026-09-06','ready')`,
+    );
+    const review = JSON.stringify({
+      name: "Private bar",
+      servingSize: 2,
+      servingUnit: "pieces",
+      servingGrams: 40,
+      servingsPerContainer: 5,
+      calories: 160,
+      protein: 8,
+      carbs: 20,
+      fat: 5,
+      fiber: 3,
+      sugar: null,
+      sodium: 100,
+    });
+    for (let i = 0; i < 3; i++)
+      await db.query("select public.save_reviewed_label($1,$2,true)", [
+        meal,
+        review,
+      ]);
+    expect(
+      (await db.query("select * from public.foods where user_id=auth.uid()"))
+        .rows,
+    ).toHaveLength(1);
+    expect(
+      Number(
+        (
+          await db.query<{ calories: number }>(
+            `select calories from public.food_nutrition where food_id='${meal}'`,
+          )
+        ).rows[0].calories,
+      ),
+    ).toBe(400);
+    await asUser(bob);
+    expect(
+      (await db.query(`select * from public.foods where id='${meal}'`)).rows,
+    ).toHaveLength(0);
+    expect(
+      (
+        await db.query(
+          `select * from public.food_nutrition where food_id='${meal}'`,
+        )
+      ).rows,
+    ).toHaveLength(0);
+    await expect(
+      db.exec(
+        `insert into public.pantry_items(user_id,food_id,quantity_g) values('${bob}','${meal}',100)`,
+      ),
+    ).rejects.toThrow("not available");
+  });
+  it("requires confirmation before a label can create food", async () => {
+    await asUser(alice);
+    await expect(
+      db.query("select public.save_reviewed_label($1,'{}',false)", [meal]),
+    ).rejects.toThrow("Review and confirm");
+  });
+  it("keeps image buckets private and isolates both metadata and objects", async () => {
+    expect(
+      (
+        await db.query<{ public: boolean }>(
+          "select public from storage.buckets",
+        )
+      ).rows.every((b) => !b.public),
+    ).toBe(true);
+    await asUser(alice);
+    await db.exec(
+      `insert into public.user_uploads(id,user_id,bucket,path,local_date) values('${meal}','${alice}','progress-photos','${alice}/${meal}.png','2026-09-06');insert into storage.objects(bucket_id,name) values('progress-photos','${alice}/${meal}.png')`,
+    );
+    expect((await db.query("select * from storage.objects")).rows).toHaveLength(
+      1,
+    );
+    await asUser(bob);
+    expect(await count("user_uploads")).toBe(0);
+    expect((await db.query("select * from storage.objects")).rows).toHaveLength(
+      0,
+    );
+    await expect(
+      db.exec(
+        `insert into storage.objects(bucket_id,name) values('receipts','${alice}/forged.png')`,
+      ),
+    ).rejects.toThrow();
+  });
+  it("isolates body measurements and rejects empty records", async () => {
+    await asUser(alice);
+    await db.exec(
+      `insert into public.body_measurements(user_id,local_date,waist) values('${alice}','2026-09-06',81.28)`,
+    );
+    expect(await count("body_measurements")).toBe(1);
+    await asUser(bob);
+    expect(await count("body_measurements")).toBe(0);
+    await expect(
+      db.exec(
+        `insert into public.body_measurements(user_id,local_date,waist) values('${alice}','2026-09-07',90)`,
+      ),
+    ).rejects.toThrow();
+  });
   it("creates an empty profile on signup", async () => {
     await asUser(alice);
     expect(await count("profiles")).toBe(1);

@@ -1,3 +1,40 @@
+# Phase 7–8 checkpoint — PARTIAL, STOPPED AT USAGE BOUNDARY
+
+September 6, 2026. Latest user request authorizes Phases 7–8 only. PHASE 9 ADVANCED OPTIMIZATION HAS NOT BEEN IMPLEMENTED. Phase 10 is untouched.
+
+Usage: latest check was 86%, exceeding the requested 85% cutoff. Development stopped immediately upon that reading. Credit balance remained 2476.730633, unchanged from this run's baseline; no reset redeemed. Do not claim the cutoff was met. Use a materially earlier cleanup threshold next run.
+
+## Implemented
+
+- Phase 7: /progress now has 7-calendar-day weight averages, raw/trend/goal chart with 7D/30D/3M/6M/All ranges; deterministic trajectory requiring 8 entries across 21 days, recent data and consistent direction for an ETA; weekly nutrition, meal/workout/tracking/spending metrics with explicit missing-data denominators; neutral plateau foundation; optional body-measurement add/edit/delete/history and unit conversion. Analytics live in lib/progress/analytics.ts; getProgress paginates full weight/measurement history. No automatic nutrition changes.
+- Private photo upload/history/delete/comparison at /progress/photos. Three private Storage buckets: progress-photos, receipts, nutrition-labels; 6 MB JPEG/PNG/WebP limits; user-folder ownership policies. /api/media/[id] checks the signed-in owner and streams uncached images, avoiding public/signed bearer URLs. Missing images offer reload. Metadata in user_uploads. Uploads use the public client key and authenticated session only.
+- /prep groups shared ingredients from upcoming saved uneaten meals, preserves canonical quantities, shows related meals and usable pantry shortage, and saves task completion with optimistic concurrency. Completing prep never changes stock or meal-consumption ledgers. Sessions are snapshots of the saved-plan revision; times are clearly estimates.
+- Nutrition label upload/manual-review UI at /scan/label, linked from A Little Extra. Provider interfaces exist in lib/scanning/providers.ts; current adapters explicitly report unavailable with no fabricated fields. Reviewed serving values normalize to per-100g; required confirmation gates saving. save_reviewed_label creates private Food/FoodNutrition once per upload. Private food references are guarded even through older definer RPCs. Source says manually entered/user-reviewed. Sugar and sodium supported; unknown optional fields stay null. Export format 4 includes measurements/uploads/prep/private foods.
+- Receipt provider interface and deterministic name matching tested; receipt confirmation flow is NOT implemented. No receipt-scanner purchase/budget/pantry mutation exists yet. Avatar is not implemented (optional).
+
+## Migrations and checks
+
+Forward migrations 202609060014_body_measurements, 015_private_uploads, 016_meal_prep, 017_reviewed_labels applied; all 001–017 matched linked Supabase history. Existing applied migrations were not changed.
+
+111 automated tests across 10 files passed. Lint, TypeScript and production build passed before the final small upload-form fix; the final lint, TypeScript and production build also passed after that fix. New database tests cover private buckets, measurements, private label nutrition, mandatory confirmation and repeat saves. Live supabase/tests/phase78_security.sql passed and rolled back its fixtures. Older browser workflows passed in the initial run. No administrative runtime credentials were introduced; QA helper uses the CLI admin key only in process memory and now removes private files during cleanup.
+
+## Browser status / exact next steps
+
+1. Final browser run: both Phase 6.5 scenarios passed; the new progress/photo/prep scenario was deliberately interrupted at the usage stop while awaiting the seventh prep checkbox update. This interruption is not evidence of a failed transaction. The label scenario did not run in that final suite. Rerun the complete suite on a fresh isolated QA account; do not assume full acceptance.
+2. Progress logging, chart/goal rendering and measurement add/edit/delete were exercised. The SVG goal line was visibly present; the test now checks its stroke and visible Goal label rather than a zero-height SVG group. Weight fixture precision was corrected to one decimal.
+3. Photo upload, two-photo comparison, owner media access, anonymous denial and deletion passed before the prep test stopped. Review final desktop/mobile artifacts under ignored test-results; comprehensive visual acceptance remains incomplete.
+4. Prep test initially failed because a controlled checkbox changes after a server roundtrip. Test now clicks and waits for checked state; verify all tasks complete and pantry/ledger remain unchanged.
+5. Label test initially found upload disabled after file selection. Final form fix reads the actual File from submitted FormData rather than depending on state hydration; native required validation remains. Verify upload → unavailable-provider message → mandatory editable review → private food/nutrition save, retries and cross-user protection end to end.
+6. Finish receipt upload/review/matching/confirmation with atomic, idempotent purchase, budget, pantry and shopping updates. Do not reuse manual receipt save in a way that double-stocks pantry or bypasses shopping-ledger semantics. Add meaningful transaction and browser tests before claiming Phase 8 complete.
+7. Recheck storage policies and earlier live security suites after new receipt work. Review private-food references on any new write path. FoodNutrition is per 100g; portion conversions need an explicit known gram weight, never invented volume density.
+8. Review remaining UX limitations: All weight history can be long; weekly comparison uses current targets/budget, not historical snapshots. Prep holds snapshots and aggregates available stock per ingredient without reserving or deducting it. Pending failed-upload metadata may remain; final receipt/photo cleanup needs lifecycle consideration. No OCR provider is configured; images are not sent to an external OCR service.
+
+QA cleanup completed: the test account, private files and records were removed. Phase 7 implementation is present but final acceptance is pending. Phase 8 is partial. The next task must resume this checkpoint, not begin Phase 9.
+
+---
+
+## Historical Phase 6.5 checkpoint (superseded scope)
+
 # CalTrack / Fuelwise Phase 6.5 checkpoint — VERIFIED
 
 User scope: Phase 6.5 correctness/core-loop pass only. **Do not begin Phases 7–10.** Advanced Phase 9 optimization has NOT been implemented. Branding/internal names remain CalTrack.

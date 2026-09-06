@@ -19,6 +19,18 @@ export default function More() {
         <p>The essentials are here. The next chapters build on them.</p>
       </header>
       <div className="info-grid">
+        <Link href="/prep" className="card more-link">
+          <Leaf size={25} />
+          <h2>Meal prep</h2>
+          <p className="muted">Grouped tasks from your upcoming saved meals.</p>
+          <ArrowUpRight size={17} />
+        </Link>
+        <Link href="/progress/photos" className="card more-link">
+          <UserRound size={25} />
+          <h2>Progress photos</h2>
+          <p className="muted">Your private photo history and comparisons.</p>
+          <ArrowUpRight size={17} />
+        </Link>
         <Link href="/pantry" className="card more-link">
           <PackageOpen size={25} />
           <h2>Your pantry</h2>
@@ -53,9 +65,8 @@ export default function More() {
           </h2>
         </div>
         <p className="muted fine-print" style={{ marginTop: 15 }}>
-          Expanded progress tracking and meal prep will build on your daily
-          essentials. Advanced price comparison comes after these everyday
-          essentials.
+          Receipt review and advanced price comparison will build on these
+          everyday essentials.
         </p>
       </section>
     </div>

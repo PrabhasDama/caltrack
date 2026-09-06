@@ -12,6 +12,9 @@ export async function GET() {
     "notification_preferences",
     "daily_logs",
     "weight_entries",
+    "body_measurements",
+    "user_uploads",
+    "meal_prep_sessions",
     "workouts",
     "daily_meal_logs",
     "extra_foods",
@@ -29,7 +32,7 @@ export async function GET() {
   ];
   const result: Record<string, unknown> = {
     exported_at: new Date().toISOString(),
-    format_version: 3,
+    format_version: 4,
   };
   for (const table of tables) {
     const rows: unknown[] = [];
@@ -50,6 +53,23 @@ export async function GET() {
     }
     result[table] = rows;
   }
+  const privateFoods: unknown[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await client
+      .from("foods")
+      .select("*,food_nutrition(*)")
+      .eq("user_id", user.id)
+      .order("id")
+      .range(offset, offset + 499);
+    if (error || !data)
+      return Response.json(
+        { error: "Export failed. Please retry." },
+        { status: 500 },
+      );
+    privateFoods.push(...data);
+    if (data.length < 500) break;
+  }
+  result.private_foods = privateFoods;
   return new Response(JSON.stringify(result, null, 2), {
     headers: {
       "Content-Type": "application/json",

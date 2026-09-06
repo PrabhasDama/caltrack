@@ -115,6 +115,7 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
         </Link>
       </header>
       <div className="purchase-actions">
+        <Link href="/prep" className="button">Meal prep →</Link>
         <Button variant="outline" onClick={() => setDiscovery((v) => !v)}>
           {discovery ? "Hide pantry ideas" : "Cook From My Pantry"}
         </Button>

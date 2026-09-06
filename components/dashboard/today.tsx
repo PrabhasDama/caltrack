@@ -776,6 +776,9 @@ export function TodayDashboard({
         <section className="card extra-food-card">
           <div className="section-heading">
             <h2>A little extra</h2>
+            <Link href="/scan/label" className="button">
+              Scan Nutrition Label
+            </Link>
             <FoodDialog date={data.date} foods={data.foods} extra>
               <button className="text-button">
                 <Plus size={14} /> Add extra food

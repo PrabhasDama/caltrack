@@ -12,6 +12,8 @@ export const config = {
     "/preferences/:path*",
     "/onboarding/:path*",
     "/plan/:path*",
+    "/prep/:path*",
+    "/scan/:path*",
     "/profile/:path*",
     "/settings/:path*",
     "/progress/:path*",
