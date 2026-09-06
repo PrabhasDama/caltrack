@@ -67,7 +67,10 @@ export async function getDashboard(
       .eq("local_date", date)
       .order("created_at")
       .limit(100),
-    client.from("foods").select("id,name").order("name"),
+    client
+      .from("foods")
+      .select("id,name,natural_unit,natural_unit_g")
+      .order("name"),
     client
       .from("pantry_items")
       .select("quantity_g,low_threshold_g")

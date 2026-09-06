@@ -163,3 +163,12 @@ Email delivery itself must be tested with an inbox you control after configuring
 Verified at this checkpoint: **59 automated domain/Postgres tests**, **1 complete browser workflow**, TypeScript, lint and production build. All 8 migrations are applied and live RLS checks pass.
 
 Next implementation milestone, only when requested: **Phase 7 — progress analytics, charts and weekly summaries.** Phase 8 covers progress photos/storage/meal prep; advanced swaps, shopping optimization and predictive inventory remain Phase 9. This run stops at Phase 6.
+
+
+## Phase 6.5 verified
+
+The connected shopping transaction, independent preferences, practical recipe portions, 43 base recipes, filtered swaps, pantry discovery, package suggestions and budget health states are implemented and verified. The completion run fixed whole-package input validity, finished unit displays and receipt source ordering, and restored numbered recipe instructions. All 92 domain/database tests, both browser scenarios, TypeScript, lint, the production build and all three live security suites pass. See CHECKPOINT.md for verification details and limitations. Phases 7–10, including the advanced Phase 9 optimizer, remain unimplemented.
+
+Migrations 009–013 add shopping session/fulfillment ledgers, section-based preference writes, recipe/portion metadata, new package references preserving historical products, and whole discrete purchase quantities. Demo estimates retain their provenance and are called out in budget totals. Receipt-photo extraction and nutrition-label extraction remain deferred; the receipt metadata field is architecture only.
+
+Cooking temperature guidance for the curated recipes was checked against [FoodSafety.gov’s safe minimum temperature chart](https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures).

@@ -6,6 +6,8 @@ export type PurchaseItem = {
   quantity: number;
   unit: "g" | "kg" | "oz" | "lb" | "piece" | "serving" | "package";
   unit_price: number;
+  price_source?: string;
+  voided_at?: string | null;
 };
 export type Purchase = {
   id: string;
@@ -17,6 +19,7 @@ export type Purchase = {
   notes: string;
   updated_at: string;
   items: PurchaseItem[];
+  origin?: string;
 };
 export type MonthSummary = {
   month: string;

@@ -6,7 +6,9 @@ import { onboardingSchema, stepSchema } from "@/lib/validation/onboarding";
 import { estimateMacros, macroWarnings } from "@/lib/nutrition/macros";
 import { toKg, toCm } from "@/lib/nutrition/units";
 export async function saveOnboardingStep(input: unknown, step: number) {
-  const { client, user } = await requireProfile(false);
+  const { client, user, profile } = await requireProfile(false);
+  if (profile.onboarding_completed_at)
+    return { error: "Use Preferences to edit your existing profile." };
   const validStep = z.number().int().min(1).max(9).safeParse(step);
   if (!validStep.success) return { error: "Invalid step." };
   // Validate all submitted field shapes, permitting not-yet-completed steps.
@@ -59,7 +61,9 @@ export async function saveOnboardingStep(input: unknown, step: number) {
     : { success: true };
 }
 export async function finishOnboarding(input: unknown) {
-  const { client } = await requireProfile(false);
+  const { client, profile } = await requireProfile(false);
+  if (profile.onboarding_completed_at)
+    return { error: "Use Preferences to edit your existing profile." };
   const parsed = onboardingSchema.safeParse(input);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const d = parsed.data;

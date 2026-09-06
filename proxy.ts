@@ -9,6 +9,7 @@ export const config = {
     "/pantry/:path*",
     "/groceries/:path*",
     "/budget/:path*",
+    "/preferences/:path*",
     "/onboarding/:path*",
     "/plan/:path*",
     "/profile/:path*",

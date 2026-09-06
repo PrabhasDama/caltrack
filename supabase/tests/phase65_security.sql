@@ -1,0 +1,32 @@
+begin;
+insert into auth.users(id,email) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','caltrack65-a@example.invalid'),('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','caltrack65-b@example.invalid');
+select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',true);
+set local role authenticated;
+do $$ declare lid uuid;item uuid;otheritem uuid;food uuid;session uuid=gen_random_uuid();request uuid=gen_random_uuid();qty numeric;begin
+ select id into food from public.foods where name='Eggs';
+ insert into public.shopping_lists(user_id,start_date,end_date) values(auth.uid(),current_date,current_date) returning id into lid;
+ insert into public.shopping_list_items(user_id,list_id,food_id,name,amount,unit,source) values(auth.uid(),lid,food,'Eggs',400,'g','manual') returning id into item;
+ insert into public.shopping_list_items(user_id,list_id,name,amount,unit,source) values(auth.uid(),lid,'Already owned fixture',1,'piece','manual') returning id into otheritem;
+ perform public.start_shopping_session(session,null,null,'QA store','USD',(now() at time zone 'America/Los_Angeles')::date);
+ perform public.fulfill_shopping_item(request,session,item,(select updated_at from public.shopping_list_items where id=item),null,null,12,'piece',.25,'manual',null);
+ perform public.fulfill_shopping_item(request,session,item,null,null,null,12,'piece',.25,'manual',null);
+ if (select quantity_g from public.pantry_items where food_id=food)<>600 or (select total from public.purchase_months())<>3 then raise exception 'Duplicate or incorrect shopping transaction';end if;
+ perform public.mark_shopping_requirement(otheritem,'already_have',(select updated_at from public.shopping_list_items where id=otheritem));
+ if (select count(*) from public.purchase_items)<>1 then raise exception 'Already-have created spending';end if;
+ perform public.correct_shopping_purchase(request,.3);
+ if (select total from public.purchase_months())<>3.6 then raise exception 'Price correction failed';end if;
+ perform public.undo_shopping_purchase(request);perform public.undo_shopping_purchase(request);
+ if (select quantity_g from public.pantry_items where food_id=food)<>0 or exists(select 1 from public.purchase_months()) then raise exception 'Undo failed';end if;
+ perform public.finish_shopping_session(session);
+end $$;
+reset role;
+select set_config('request.jwt.claim.sub','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',true);
+set local role authenticated;
+do $$ begin if exists(select 1 from public.shopping_sessions) or exists(select 1 from public.shopping_fulfillments) or exists(select 1 from public.purchases) then raise exception 'Cross-user shopping exposure';end if;end $$;
+reset role;
+do $$ begin
+ if exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' and not c.relrowsecurity) then raise exception 'Missing RLS';end if;
+ if has_function_privilege('anon','public.fulfill_shopping_item(uuid,uuid,uuid,timestamptz,uuid,uuid,numeric,text,numeric,text,date)','execute') then raise exception 'Anonymous checkout allowed';end if;
+end $$;
+rollback;
+select 'PASS: live shopping retry, pantry/spending, already-have, price correction, reversal and owner RLS; fixtures rolled back' as result;

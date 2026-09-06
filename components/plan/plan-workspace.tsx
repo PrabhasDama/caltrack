@@ -17,6 +17,7 @@ import { addDays, formatDate } from "@/lib/date";
 import { savePlan } from "@/app/(app)/plan/actions";
 import type { PlanContext, PlanDay, MealTemplate } from "@/lib/meal-plan/types";
 import { MacroComparison } from "./macro-comparison";
+import { PantryDiscovery } from "./pantry-discovery";
 import { MealPreview } from "./meal-preview";
 export function PlanWorkspace({ context }: { context: PlanContext }) {
   const [days, setDays] = useState(context.days);
@@ -24,6 +25,7 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
   const [selected, setSelected] = useState(context.today);
   const [revision, setRevision] = useState(context.revision);
   const [variation, setVariation] = useState(0);
+  const [discovery, setDiscovery] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
@@ -108,10 +110,47 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
           </h1>
           <p>Familiar meals, practical portions, and room to make it yours.</p>
         </div>
-        <Link href="/onboarding" className="button">
+        <Link href="/preferences" className="button">
           Preferences <ArrowUpRight size={14} />
         </Link>
       </header>
+      <div className="purchase-actions">
+        <Button variant="outline" onClick={() => setDiscovery((v) => !v)}>
+          {discovery ? "Hide pantry ideas" : "Cook From My Pantry"}
+        </Button>
+      </div>
+      {discovery && (
+        <PantryDiscovery
+          context={context}
+          locked={Boolean(day && locked(day)) || pending}
+          onChoose={(t, slot) => {
+            try {
+              const base =
+                day ||
+                generatePlan({ ...context, days }, selected, 1, variation)[0];
+              const index = base.meals.findIndex((m) => m.slot === slot);
+              if (index < 0) {
+                setError(
+                  `Your ${context.preferences.mealsPerDay}-meal schedule has no ${slot.toLowerCase()} slot. Choose another slot or change meals per day.`,
+                );
+                return;
+              }
+              const next = swapMeal(base, index, t, context);
+              setDays((ds) =>
+                [...ds.filter((d) => d.date !== selected), next].sort((a, b) =>
+                  a.date.localeCompare(b.date),
+                ),
+              );
+              setDirty((ds) => [...new Set([...ds, selected])]);
+              setDiscovery(false);
+            } catch (e) {
+              setError(
+                e instanceof Error ? e.message : "Could not use this meal",
+              );
+            }
+          }}
+        />
+      )}
       <section className="plan-toolbar card">
         <div>
           <Utensils size={22} />

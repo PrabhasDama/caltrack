@@ -1,7 +1,8 @@
 import { addDays } from "@/lib/date";
+import { normalizePortion, type Measurement } from "@/lib/food/quantities";
 import { sumMacros, type Macros } from "@/lib/nutrition/macros";
 import { allowedTemplates, matchesFood } from "./restrictions";
-import { mealMacros, dayMacros, round } from "./calculations";
+import { mealMacros, dayMacros } from "./calculations";
 import type {
   CatalogFood,
   MealTemplate,
@@ -21,16 +22,23 @@ export function scaleTemplate(
   calories: number,
   slot: PlannedMeal["slot"],
   key: string,
+  units: Measurement = "metric",
 ): PlannedMeal {
   const base = mealMacros(template.items, foods);
   const factor = Math.max(
     0.5,
-    Math.min(3, calories / Math.max(1, base.calories)),
+    Math.min(2, calories / Math.max(1, base.calories)),
   );
   const ingredients = template.items.map((i) => ({
     food_id: i.food_id,
     name: foods.find((f) => f.id === i.food_id)!.name,
-    quantity_g: Math.max(1, round(i.quantity_g * factor, 0)),
+    quantity_g: normalizePortion(
+      i.quantity_g * factor,
+      foods.find((f) => f.id === i.food_id)!,
+      i.quantity_g * 0.5,
+      i.quantity_g * 3,
+      units,
+    ),
   }));
   return {
     key,
@@ -43,65 +51,70 @@ export function scaleTemplate(
     cooking_minutes: template.cooking_minutes,
   };
 }
-function loss(actual: Macros, target: Macros) {
-  return (
-    4 * ((actual.calories - target.calories) / target.calories) ** 2 +
-    3 *
-      ((actual.protein - target.protein) / Math.max(20, target.protein)) ** 2 +
-    0.5 * ((actual.carbs - target.carbs) / Math.max(40, target.carbs)) ** 2 +
-    0.8 * ((actual.fat - target.fat) / Math.max(20, target.fat)) ** 2 +
-    2 *
-      (Math.min(0, actual.fiber - target.fiber) / Math.max(10, target.fiber)) **
-        2
-  );
+export const targetTolerances: Record<keyof Macros, number> = {
+  calories: 0.1,
+  protein: 0.15,
+  carbs: 0.2,
+  fat: 0.25,
+  fiber: 0.2,
+};
+export function targetLoss(
+  actual: Macros,
+  target: Macros,
+  tolerances = targetTolerances,
+) {
+  const weights = { calories: 4, protein: 3, carbs: 0.5, fat: 0.8, fiber: 2 };
+  return (Object.keys(weights) as (keyof Macros)[]).reduce((sum, k) => {
+    const difference =
+      k === "fiber"
+        ? Math.max(0, target[k] - actual[k])
+        : Math.abs(actual[k] - target[k]);
+    const excess = Math.max(
+      0,
+      difference / Math.max(1, target[k]) - tolerances[k],
+    );
+    return sum + weights[k] * excess ** 2;
+  }, 0);
 }
 export function fitDay(
   day: PlanDay,
-  context: Pick<PlanContext, "foods" | "templates" | "targets">,
+  context: Pick<PlanContext, "foods" | "templates" | "targets" | "units">,
 ): PlanDay {
   const meals = structuredClone(day.meals);
   let totals = sumMacros(meals.map((m) => m.macros));
-  // Bounded coordinate descent over practical template portions; deterministic, no solver.
-  for (let pass = 0; pass < 100; pass++) {
-    let best = loss(totals, context.targets);
-    let choice:
-      | { m: number; i: number; grams: number; macros: Macros; total: Macros }
-      | undefined;
-    for (let mi = 0; mi < meals.length; mi++) {
-      const meal = meals[mi];
-      if (meal.status && meal.status !== "planned") continue;
+  // Scale coherent recipes as a whole. Never independently inflate one ingredient to chase a macro.
+  for (let pass = 0; pass < 20; pass++) {
+    let best = targetLoss(totals, context.targets);
+    let choice: { index: number; meal: PlannedMeal; total: Macros } | null =
+      null;
+    for (let i = 0; i < meals.length; i++) {
+      const current = meals[i];
+      if (current.status && current.status !== "planned") continue;
       const template = context.templates.find(
-        (t) => t.id === meal.template_id,
+        (t) => t.id === current.template_id,
       )!;
-      for (let ii = 0; ii < meal.ingredients.length; ii++) {
-        const ingredient = meal.ingredients[ii];
-        const base = template.items.find(
-          (i) => i.food_id === ingredient.food_id,
-        )!.quantity_g;
-        for (const change of [-1, 1]) {
-          const grams = round(
-            ingredient.quantity_g + change * Math.max(2, round(base * 0.08, 0)),
-            0,
-          );
-          if (grams < Math.max(1, base * 0.5) || grams > base * 3) continue;
-          const items = meal.ingredients.map((it, i) =>
-            i === ii ? { ...it, quantity_g: grams } : it,
-          );
-          const macros = mealMacros(items, context.foods);
-          const total = { ...totals };
-          for (const k of Object.keys(total) as (keyof Macros)[])
-            total[k] += macros[k] - meal.macros[k];
-          const score = loss(total, context.targets);
-          if (score < best - 1e-7) {
-            best = score;
-            choice = { m: mi, i: ii, grams, macros, total };
-          }
+      for (const change of [-0.125, 0.125]) {
+        const base = mealMacros(template.items, context.foods).calories;
+        const candidate = scaleTemplate(
+          template,
+          context.foods,
+          current.macros.calories + base * change,
+          current.slot,
+          current.key,
+          context.units,
+        );
+        const total = sumMacros(
+          meals.map((m, j) => (j === i ? candidate.macros : m.macros)),
+        );
+        const score = targetLoss(total, context.targets);
+        if (score < best - 1e-7) {
+          best = score;
+          choice = { index: i, meal: candidate, total };
         }
       }
     }
     if (!choice) break;
-    meals[choice.m].ingredients[choice.i].quantity_g = choice.grams;
-    meals[choice.m].macros = choice.macros;
+    meals[choice.index] = choice.meal;
     totals = choice.total;
   }
   return { ...day, meals };
@@ -158,8 +171,20 @@ export function generatePlan(
           : context.preferences.repeatTolerance === "some"
             ? Math.floor(d / 2)
             : d;
-      const top = candidates.filter((t) => !used.has(t.id));
-      const pool = top.length ? top : candidates;
+      const old = context.days.find((day) => day.date === date)?.meals[index]
+        ?.template_id;
+      const alternatives = candidates.filter((t) => t.id !== old);
+      const choices = alternatives.length ? alternatives : candidates;
+      const top = choices.filter((t) => !used.has(t.id));
+      let pool = top.length ? top : choices;
+      if (context.preferences.repeatTolerance === "variety") {
+        const counts = new Map<string, number>();
+        for (const day of days)
+          for (const m of day.meals)
+            counts.set(m.template_id, (counts.get(m.template_id) || 0) + 1);
+        const least = Math.min(...pool.map((t) => counts.get(t.id) || 0));
+        pool = pool.filter((t) => (counts.get(t.id) || 0) === least);
+      }
       const template = pool[(rotation + variation + index) % pool.length];
       used.add(template.id);
       const weights = slots.map((s) => (s === "Snack" ? 0.55 : 1));
@@ -172,6 +197,7 @@ export function generatePlan(
         kcal,
         slot,
         `${date}-${index}`,
+        context.units,
       );
     });
     days.push(fitDay({ date, meals }, context));
@@ -193,6 +219,7 @@ export function swapMeal(
     original.macros.calories,
     original.slot,
     original.key,
+    context.units,
   );
   return {
     ...day,

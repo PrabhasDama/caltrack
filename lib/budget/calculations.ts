@@ -68,3 +68,37 @@ export function budgetSummary(
         : null,
   };
 }
+
+export function budgetHealth(
+  budget: number,
+  spent: number,
+  shoppingDays: number,
+  month: string,
+  today: string,
+) {
+  const summary = budgetSummary(budget, spent, shoppingDays, month, today);
+  const elapsed =
+    month === today.slice(0, 7)
+      ? Number(today.slice(8, 10))
+      : new Date(
+          Number(month.slice(0, 4)),
+          Number(month.slice(5, 7)),
+          0,
+        ).getDate();
+  const sufficient = elapsed >= 7 && shoppingDays >= 2;
+  return {
+    status:
+      spent > budget
+        ? "Over budget"
+        : spent >= budget * 0.9
+          ? "Near limit"
+          : summary.projected !== null && summary.projected > budget
+            ? "Trending over budget"
+            : spent === 0
+              ? "No spending recorded"
+              : "Within budget",
+    weeklyAverage: sufficient ? (spent / elapsed) * 7 : null,
+    costPerDay: sufficient ? spent / elapsed : null,
+    percent: budget > 0 ? (spent / budget) * 100 : 0,
+  };
+}

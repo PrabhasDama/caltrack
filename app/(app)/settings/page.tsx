@@ -17,7 +17,7 @@ export default function Settings() {
       <section className="card">
         <h2>Account & preferences</h2>
         <div className="settings-links">
-          <Link href="/onboarding">
+          <Link href="/preferences">
             <span>
               <strong>Your profile and plan</strong>
               <small>

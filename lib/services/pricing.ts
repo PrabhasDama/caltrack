@@ -10,6 +10,8 @@ export const productSchema = z.object({
   package_amount: z.coerce.number(),
   package_unit: z.string(),
   package_grams: z.coerce.number().nullable(),
+  package_label: z.string().nullable().optional(),
+  is_active: z.boolean().optional(),
 });
 const offerSchema = z.object({
   id: z.string(),
@@ -50,7 +52,9 @@ export async function getDemoPricing() {
   return {
     currency: currency.parse(budget.data.currency),
     provider: new DemoPriceProvider(
-      offerSchema.array().parse(offers.data),
+      offerSchema
+        .array()
+        .parse(offers.data.filter((o) => o.product?.is_active !== false)),
       z
         .object({
           id: z.string(),

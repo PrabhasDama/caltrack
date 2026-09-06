@@ -5,6 +5,7 @@ export default async function Pantry() {
   const data = await getInventory();
   return (
     <PantryWorkspace
+      units={data.units}
       foods={data.foods}
       pantry={data.pantry}
       today={data.today}

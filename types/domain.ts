@@ -45,7 +45,13 @@ export type ExtraFood = Macros & {
   name: string;
   cost: number | null;
 };
-export type Food = { id: string; name: string };
+export type Food = {
+  id: string;
+  name: string;
+  natural_unit?: string | null;
+  natural_unit_g?: number | null;
+  piece_g?: number | null;
+};
 export type DashboardData = {
   profile: Profile;
   date: string;

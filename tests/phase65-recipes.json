@@ -1,0 +1,1908 @@
+[
+  {
+    "slug": "yogurt-oats",
+    "name": "Greek yogurt protein bowl",
+    "slots": [
+      "Breakfast",
+      "Snack"
+    ],
+    "prep": 5,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Greek yogurt",
+        250,
+        "protein"
+      ],
+      [
+        "Oats",
+        60,
+        "carb"
+      ],
+      [
+        "Blueberries",
+        100,
+        "fiber"
+      ],
+      [
+        "Chia seeds",
+        15,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Stir the yogurt, oats and chia in a bowl. Add 1–2 tablespoons of water if it feels too thick.",
+      "Fold in half the blueberries, then scatter the rest on top. Let stand for 5 minutes for softer oats."
+    ],
+    "notes": "One bowl. Use plain nonfat yogurt and dry rolled oats.",
+    "seasonings": [
+      "Cinnamon",
+      "Vanilla extract"
+    ]
+  },
+  {
+    "slug": "egg-oats",
+    "name": "Egg scramble & apple oatmeal",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 3,
+    "cook": 7,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Eggs",
+        100,
+        "protein"
+      ],
+      [
+        "Egg whites",
+        150,
+        "protein"
+      ],
+      [
+        "Oats",
+        60,
+        "carb"
+      ],
+      [
+        "Apples",
+        182,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Dice the apple. Simmer the oats and apple in water over low heat for 5–7 minutes, stirring until creamy.",
+      "Whisk eggs and whites together. Cook in a nonstick skillet over medium-low heat for 3–5 minutes, folding gently, until fully set (160°F / 71°C for the egg mixture).",
+      "Serve the scramble beside the oatmeal."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon for oats",
+      "Black pepper for eggs"
+    ]
+  },
+  {
+    "slug": "tofu-potatoes",
+    "name": "Golden tofu & potato skillet",
+    "slots": [
+      "Breakfast",
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 15,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Tofu",
+        200,
+        "protein"
+      ],
+      [
+        "Potatoes",
+        250,
+        "carb"
+      ],
+      [
+        "Spinach",
+        75,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Dice the potatoes into 1 cm cubes. Microwave with a splash of water, covered loosely, for 5–7 minutes until just tender.",
+      "Pat the tofu dry and cut into 2 cm cubes. Heat the measured oil over medium-high heat; brown the tofu for 6–8 minutes, turning to color both sides.",
+      "Drain potatoes and add to the skillet. Cook for 4–5 minutes until lightly crisp. Fold in spinach for the final 1–2 minutes, until wilted."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Smoked paprika",
+      "Garlic powder",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "chicken-rice",
+    "name": "Lemon-pepper chicken & rice",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 25,
+    "skill": 2,
+    "cuisine": "Mediterranean inspired",
+    "tier": 2,
+    "items": [
+      [
+        "Chicken breast",
+        175,
+        "protein"
+      ],
+      [
+        "Rice",
+        75,
+        "carb"
+      ],
+      [
+        "Broccoli",
+        175,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Rinse the measured dry rice. Add water using the package ratio, bring to a boil, cover and simmer on low for the package cooking time. Rest covered for 5 minutes.",
+      "Cut the chicken into even bite-size pieces. Cook in a hot skillet with the measured oil for 7–10 minutes, turning often, until the thickest pieces reach 165°F / 74°C.",
+      "Cut broccoli into bite-size florets. Steam for 4–6 minutes until bright green and fork-tender. Serve with rice and chicken."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Lemon zest",
+      "Oregano",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "turkey-potatoes",
+    "name": "Smoky turkey & sweet potato bowl",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 25,
+    "skill": 2,
+    "cuisine": "Southwest inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Ground turkey",
+        175,
+        "protein"
+      ],
+      [
+        "Sweet potatoes",
+        250,
+        "carb"
+      ],
+      [
+        "Mixed vegetables",
+        150,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        4.5,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Heat oven to 425°F / 220°C. Dice sweet potato into 1.5 cm cubes, toss with measured oil and roast 20–25 minutes, turning once, until tender.",
+      "Cook the turkey over medium-high heat for 7–9 minutes, breaking it into small crumbles, until it reaches 165°F / 74°C.",
+      "Steam the frozen vegetables according to the bag, until hot throughout. Spoon turkey and vegetables over sweet potato."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Smoked paprika",
+      "Cumin",
+      "Chili powder"
+    ]
+  },
+  {
+    "slug": "tuna-bean",
+    "name": "Lemon-herb tuna & bean salad",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 10,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Mediterranean inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Tuna",
+        150,
+        "protein"
+      ],
+      [
+        "Beans",
+        175,
+        "protein"
+      ],
+      [
+        "Spinach",
+        75,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Drain the tuna; rinse and drain the canned beans thoroughly. Wash spinach and pat dry.",
+      "Flake tuna into a bowl. Fold in beans, spinach and measured oil without mashing the beans.",
+      "Add optional seasonings, toss gently and serve at once."
+    ],
+    "notes": "Use drained weights for both canned ingredients.",
+    "seasonings": [
+      "Lemon zest",
+      "Dried dill",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "lentil-rice",
+    "name": "Warm lentil rice & greens",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 15,
+    "skill": 1,
+    "cuisine": "Middle Eastern inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Lentils",
+        200,
+        "protein"
+      ],
+      [
+        "Rice",
+        65,
+        "carb"
+      ],
+      [
+        "Spinach",
+        75,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Rinse the measured dry rice. Add water using the package ratio, bring to a boil, cover and simmer on low for the package cooking time. Rest covered for 5 minutes.",
+      "Warm drained cooked lentils with the measured oil and 2 tablespoons of water in a skillet over medium heat for 3–4 minutes.",
+      "Add spinach and stir for 1–2 minutes until wilted. Serve over rice."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cumin",
+      "Ground coriander",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "tofu-rice",
+    "name": "Crisp tofu & broccoli rice bowl",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 15,
+    "skill": 1,
+    "cuisine": "East Asian inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Tofu",
+        200,
+        "protein"
+      ],
+      [
+        "Rice",
+        70,
+        "carb"
+      ],
+      [
+        "Broccoli",
+        175,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Rinse the measured dry rice. Add water using the package ratio, bring to a boil, cover and simmer on low for the package cooking time. Rest covered for 5 minutes.",
+      "Pat the tofu dry and cut into 2 cm cubes. Heat the measured oil over medium-high heat; brown the tofu for 6–8 minutes, turning to color both sides.",
+      "Steam broccoli for 4–6 minutes until crisp-tender. Add it to the tofu for the last minute, then spoon over rice."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Ground ginger",
+      "Garlic powder",
+      "Chili flakes"
+    ]
+  },
+  {
+    "slug": "cottage-fruit",
+    "name": "Cottage cheese banana bowl",
+    "slots": [
+      "Breakfast",
+      "Snack"
+    ],
+    "prep": 5,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Cottage cheese",
+        250,
+        "protein"
+      ],
+      [
+        "Bananas",
+        118,
+        "carb"
+      ],
+      [
+        "Chia seeds",
+        15,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Peel and slice the banana. Spoon cottage cheese into a bowl.",
+      "Arrange banana on top, sprinkle with chia and let stand 2–3 minutes before eating."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon"
+    ]
+  },
+  {
+    "slug": "bean-avocado",
+    "name": "Warm bean & avocado bowl",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 5,
+    "skill": 1,
+    "cuisine": "Southwest inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Beans",
+        200,
+        "protein"
+      ],
+      [
+        "Avocado",
+        75,
+        "fat"
+      ],
+      [
+        "Mixed vegetables",
+        150,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Warm the drained beans in a saucepan with 2 tablespoons of water over medium heat for 3–5 minutes.",
+      "Steam the vegetables according to their package. Fold into the beans.",
+      "Dice the avocado just before serving and scatter over the bowl."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cumin",
+      "Chili flakes",
+      "Lime zest"
+    ]
+  },
+  {
+    "slug": "peanut-oats",
+    "name": "Banana peanut oatmeal",
+    "slots": [
+      "Breakfast",
+      "Snack"
+    ],
+    "prep": 3,
+    "cook": 7,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Oats",
+        70,
+        "carb"
+      ],
+      [
+        "Peanut butter",
+        25,
+        "fat"
+      ],
+      [
+        "Bananas",
+        118,
+        "carb"
+      ],
+      [
+        "Chia seeds",
+        15,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Bring oats and package-directed water to a simmer. Cook over low heat 5–7 minutes, stirring until soft.",
+      "Remove from heat and stir in peanut butter and chia. Add a splash of water if needed.",
+      "Slice the banana over the top."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon"
+    ]
+  },
+  {
+    "slug": "tofu-berry",
+    "name": "Berry tofu smoothie bowl",
+    "slots": [
+      "Breakfast",
+      "Snack"
+    ],
+    "prep": 5,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Tofu",
+        200,
+        "protein"
+      ],
+      [
+        "Blueberries",
+        125,
+        "fiber"
+      ],
+      [
+        "Chia seeds",
+        15,
+        "fiber"
+      ],
+      [
+        "Bananas",
+        118,
+        "carb"
+      ]
+    ],
+    "steps": [
+      "Drain the tofu well. Peel the banana and add to a blender with tofu and blueberries.",
+      "Blend until smooth, adding water one tablespoon at a time. Keep the mixture thick enough to eat with a spoon.",
+      "Pour into a bowl and stir in chia. Rest 5 minutes to thicken."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Vanilla extract"
+    ]
+  },
+  {
+    "slug": "overnight-protein-oats",
+    "name": "Overnight vanilla protein oats",
+    "slots": [
+      "Breakfast",
+      "Snack"
+    ],
+    "prep": 5,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Oats",
+        60,
+        "carb"
+      ],
+      [
+        "Greek yogurt",
+        175,
+        "protein"
+      ],
+      [
+        "Protein powder",
+        20,
+        "protein"
+      ],
+      [
+        "Berries",
+        100,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Whisk yogurt and protein powder with 80–120 mL water until smooth. Stir in oats.",
+      "Cover and refrigerate for at least 4 hours or overnight. Stir well and top with berries before eating."
+    ],
+    "notes": "5 minutes active preparation; requires at least 4 hours chilling.",
+    "seasonings": [
+      "Vanilla extract",
+      "Cinnamon"
+    ]
+  },
+  {
+    "slug": "egg-white-sandwich",
+    "name": "Egg-white breakfast sandwich",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 3,
+    "cook": 7,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Bread",
+        80,
+        "carb"
+      ],
+      [
+        "Egg whites",
+        200,
+        "protein"
+      ],
+      [
+        "Spinach",
+        50,
+        "fiber"
+      ],
+      [
+        "Avocado",
+        50,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Toast the bread. Mash avocado with a fork and spread over one slice.",
+      "In a nonstick skillet over medium-low heat, wilt spinach with a splash of water. Add egg whites and cook 3–5 minutes until completely set (160°F / 71°C).",
+      "Fold the eggs onto the toast and close the sandwich."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Black pepper",
+      "Chili flakes"
+    ]
+  },
+  {
+    "slug": "protein-french-toast",
+    "name": "Cinnamon protein French toast",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 5,
+    "cook": 10,
+    "skill": 2,
+    "cuisine": "French inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Bread",
+        80,
+        "carb"
+      ],
+      [
+        "Egg whites",
+        150,
+        "protein"
+      ],
+      [
+        "Greek yogurt",
+        150,
+        "protein"
+      ],
+      [
+        "Berries",
+        100,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Whisk egg whites with cinnamon in a shallow dish. Dip each bread slice for 10–15 seconds per side; reserve no raw egg mixture for serving.",
+      "Cook in a nonstick skillet over medium-low heat for 3–4 minutes per side, until golden and the egg coating is fully cooked to 160°F / 71°C.",
+      "Top with yogurt and berries."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon",
+      "Vanilla extract"
+    ]
+  },
+  {
+    "slug": "cottage-berry",
+    "name": "Cottage cheese & berry crunch",
+    "slots": [
+      "Breakfast",
+      "Snack"
+    ],
+    "prep": 5,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Cottage cheese",
+        250,
+        "protein"
+      ],
+      [
+        "Blueberries",
+        125,
+        "fiber"
+      ],
+      [
+        "Oats",
+        30,
+        "carb"
+      ],
+      [
+        "Chia seeds",
+        10,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Spoon cottage cheese into a bowl and fold in half the berries.",
+      "Scatter dry oats, chia and the remaining berries on top. Rest 5 minutes if you prefer softer oats."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon"
+    ]
+  },
+  {
+    "slug": "potato-egg-scramble",
+    "name": "Potato & pepper egg scramble",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 5,
+    "cook": 15,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Eggs",
+        100,
+        "protein"
+      ],
+      [
+        "Egg whites",
+        100,
+        "protein"
+      ],
+      [
+        "Potatoes",
+        200,
+        "carb"
+      ],
+      [
+        "Bell peppers",
+        100,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        4.5,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Dice potato and pepper. Microwave potato with a splash of water for 5–7 minutes until tender.",
+      "Heat oil over medium heat. Fry potato and pepper for 4–5 minutes.",
+      "Whisk eggs and whites, pour into the skillet and fold gently for 3–5 minutes until fully set (160°F / 71°C)."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Paprika",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "protein-pancakes",
+    "name": "Banana oat protein pancakes",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 5,
+    "cook": 10,
+    "skill": 2,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Oats",
+        60,
+        "carb"
+      ],
+      [
+        "Egg whites",
+        150,
+        "protein"
+      ],
+      [
+        "Bananas",
+        118,
+        "carb"
+      ],
+      [
+        "Greek yogurt",
+        150,
+        "protein"
+      ]
+    ],
+    "steps": [
+      "Blend oats into a coarse flour, then blend with banana and egg whites. Rest the batter 2 minutes.",
+      "Heat a nonstick skillet over medium-low heat. Spoon small pancakes into the pan and cook 2–3 minutes per side, until the centers are set and reach 160°F / 71°C.",
+      "Serve with yogurt."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon",
+      "Vanilla extract"
+    ]
+  },
+  {
+    "slug": "chicken-egg-breakfast",
+    "name": "Chicken & egg breakfast bowl",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 5,
+    "cook": 20,
+    "skill": 2,
+    "cuisine": "Everyday",
+    "tier": 2,
+    "items": [
+      [
+        "Chicken breast",
+        100,
+        "protein"
+      ],
+      [
+        "Eggs",
+        50,
+        "protein"
+      ],
+      [
+        "Potatoes",
+        200,
+        "carb"
+      ],
+      [
+        "Spinach",
+        50,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        4.5,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Dice potatoes and microwave with a splash of water for 6–8 minutes until tender.",
+      "Cut the chicken into even bite-size pieces. Cook in a hot skillet with the measured oil for 7–10 minutes, turning often, until the thickest pieces reach 165°F / 74°C.",
+      "Add potato and spinach to the pan for 2 minutes. Make a space for the egg and cook until white and yolk are firm. Serve together."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Black pepper",
+      "A pinch of salt"
+    ]
+  },
+  {
+    "slug": "yogurt-toasted-oats",
+    "name": "Yogurt with toasted oats & apple",
+    "slots": [
+      "Breakfast",
+      "Snack"
+    ],
+    "prep": 5,
+    "cook": 5,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Greek yogurt",
+        250,
+        "protein"
+      ],
+      [
+        "Oats",
+        50,
+        "carb"
+      ],
+      [
+        "Apples",
+        182,
+        "fiber"
+      ],
+      [
+        "Peanut butter",
+        15,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Toast oats in a dry skillet over medium-low heat for 3–4 minutes, stirring until fragrant. Let cool slightly.",
+      "Dice apple. Spoon yogurt into a bowl, add apple and toasted oats, and swirl in peanut butter."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon"
+    ]
+  },
+  {
+    "slug": "savory-cottage-toast",
+    "name": "Savory cottage cheese toast",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 5,
+    "cook": 5,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Bread",
+        80,
+        "carb"
+      ],
+      [
+        "Cottage cheese",
+        200,
+        "protein"
+      ],
+      [
+        "Bell peppers",
+        100,
+        "fiber"
+      ],
+      [
+        "Avocado",
+        50,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Toast bread until crisp. Dice pepper and avocado into small pieces.",
+      "Spread cottage cheese over toast and top with vegetables. Press toppings down lightly before serving."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Black pepper",
+      "Dried dill"
+    ]
+  },
+  {
+    "slug": "quinoa-egg-bowl",
+    "name": "Quinoa egg & greens bowl",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 5,
+    "cook": 20,
+    "skill": 2,
+    "cuisine": "Everyday",
+    "tier": 2,
+    "items": [
+      [
+        "Quinoa",
+        60,
+        "carb"
+      ],
+      [
+        "Eggs",
+        100,
+        "protein"
+      ],
+      [
+        "Egg whites",
+        100,
+        "protein"
+      ],
+      [
+        "Spinach",
+        75,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        4.5,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Rinse quinoa and simmer with package-directed water, covered, until the water is absorbed and the germ curls away, about 15 minutes.",
+      "Warm oil in a nonstick pan. Wilt spinach, then add beaten eggs and whites. Fold over medium-low heat until fully set (160°F / 71°C).",
+      "Serve the scramble over quinoa."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Black pepper",
+      "A pinch of salt"
+    ]
+  },
+  {
+    "slug": "turkey-bean-chili",
+    "name": "Weeknight turkey & bean chili",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 20,
+    "skill": 2,
+    "cuisine": "Southwest inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Ground turkey",
+        150,
+        "protein"
+      ],
+      [
+        "Beans",
+        175,
+        "carb"
+      ],
+      [
+        "Bell peppers",
+        100,
+        "fiber"
+      ],
+      [
+        "Carrots",
+        75,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        4.5,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Dice pepper and carrot. Heat oil in a saucepan and soften vegetables over medium heat for 5 minutes.",
+      "Cook the turkey over medium-high heat for 7–9 minutes, breaking it into small crumbles, until it reaches 165°F / 74°C.",
+      "Add drained beans, optional spices and 100–150 mL water. Simmer uncovered for 10 minutes until thick and vegetables are tender."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Chili powder",
+      "Cumin",
+      "Smoked paprika"
+    ]
+  },
+  {
+    "slug": "salmon-quinoa",
+    "name": "Dill salmon with quinoa & beans",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 25,
+    "skill": 2,
+    "cuisine": "Mediterranean inspired",
+    "tier": 3,
+    "items": [
+      [
+        "Salmon",
+        175,
+        "protein"
+      ],
+      [
+        "Quinoa",
+        60,
+        "carb"
+      ],
+      [
+        "Green beans",
+        175,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Heat oven to 400°F / 200°C. Rinse quinoa and simmer using the package water ratio, about 15 minutes.",
+      "Place salmon on baking parchment. Roast 12–16 minutes until the center reaches 145°F / 63°C and flakes easily.",
+      "Steam green beans 5–7 minutes until tender-crisp. Serve alongside salmon and quinoa."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Dill",
+      "Lemon zest",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "chicken-pasta",
+    "name": "Chicken, spinach & pepper pasta",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 20,
+    "skill": 2,
+    "cuisine": "Italian inspired",
+    "tier": 2,
+    "items": [
+      [
+        "Chicken breast",
+        175,
+        "protein"
+      ],
+      [
+        "Pasta",
+        75,
+        "carb"
+      ],
+      [
+        "Spinach",
+        75,
+        "fiber"
+      ],
+      [
+        "Bell peppers",
+        100,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Boil pasta in water according to its package until just tender. Reserve a little cooking water.",
+      "Cut the chicken into even bite-size pieces. Cook in a hot skillet with the measured oil for 7–10 minutes, turning often, until the thickest pieces reach 165°F / 74°C.",
+      "Slice pepper and add to the chicken for 3 minutes, then wilt in spinach. Toss with pasta and a splash of cooking water."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Basil",
+      "Oregano",
+      "Garlic powder"
+    ]
+  },
+  {
+    "slug": "turkey-taco-wraps",
+    "name": "Turkey & avocado taco wraps",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 15,
+    "skill": 1,
+    "cuisine": "Mexican inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Ground turkey",
+        175,
+        "protein"
+      ],
+      [
+        "Tortillas",
+        90,
+        "carb"
+      ],
+      [
+        "Bell peppers",
+        100,
+        "fiber"
+      ],
+      [
+        "Avocado",
+        50,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Cook the turkey over medium-high heat for 7–9 minutes, breaking it into small crumbles, until it reaches 165°F / 74°C.",
+      "Slice peppers finely and add for the final 3–4 minutes of cooking with optional taco spices.",
+      "Warm tortillas in a dry skillet for 20–30 seconds per side. Fill with turkey, peppers and diced avocado."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cumin",
+      "Chili powder",
+      "Lime zest"
+    ]
+  },
+  {
+    "slug": "lentil-pasta",
+    "name": "Herby lentil & spinach pasta",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 15,
+    "skill": 1,
+    "cuisine": "Italian inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Lentils",
+        200,
+        "protein"
+      ],
+      [
+        "Pasta",
+        75,
+        "carb"
+      ],
+      [
+        "Spinach",
+        75,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Boil pasta until just tender using package instructions. Save 3 tablespoons of pasta water.",
+      "Warm lentils and oil in a skillet over medium heat for 3 minutes. Add spinach until wilted.",
+      "Toss with pasta and reserved water. Season and serve hot."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Oregano",
+      "Basil",
+      "Garlic powder"
+    ]
+  },
+  {
+    "slug": "tofu-peanut-noodles",
+    "name": "Peanut tofu noodle bowl",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 15,
+    "skill": 2,
+    "cuisine": "Southeast Asian inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Tofu",
+        175,
+        "protein"
+      ],
+      [
+        "Pasta",
+        65,
+        "carb"
+      ],
+      [
+        "Carrots",
+        100,
+        "fiber"
+      ],
+      [
+        "Peanut butter",
+        20,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Boil pasta according to the package. Cut tofu into small cubes and grate carrots.",
+      "Whisk peanut butter with 2–4 tablespoons of hot pasta water until pourable.",
+      "Drain pasta, return to the warm pot and toss with tofu, carrots and peanut sauce over low heat for 2–3 minutes until hot throughout."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Ground ginger",
+      "Chili flakes"
+    ]
+  },
+  {
+    "slug": "beef-pepper-rice",
+    "name": "Beef & pepper rice skillet",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 25,
+    "skill": 2,
+    "cuisine": "Everyday",
+    "tier": 3,
+    "items": [
+      [
+        "Lean beef",
+        175,
+        "protein"
+      ],
+      [
+        "Rice",
+        70,
+        "carb"
+      ],
+      [
+        "Bell peppers",
+        150,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        4.5,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Rinse the measured dry rice. Add water using the package ratio, bring to a boil, cover and simmer on low for the package cooking time. Rest covered for 5 minutes.",
+      "Slice the beef into thin strips and pepper into narrow pieces. Heat oil over medium-high heat and brown beef 2–3 minutes per side.",
+      "Add pepper and cook until just tender. For intact beef strips, verify 145°F / 63°C and rest 3 minutes; use 160°F / 71°C if substituting ground beef. Serve over rice."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Garlic powder",
+      "Smoked paprika"
+    ]
+  },
+  {
+    "slug": "tuna-avocado-toast",
+    "name": "Tuna avocado toast & carrots",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 5,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Tuna",
+        150,
+        "protein"
+      ],
+      [
+        "Bread",
+        80,
+        "carb"
+      ],
+      [
+        "Avocado",
+        75,
+        "fat"
+      ],
+      [
+        "Carrots",
+        125,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Toast bread until crisp. Drain tuna and mash avocado with a fork.",
+      "Spread avocado on toast and pile tuna on top. Cut carrots into sticks and serve alongside."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Lemon zest",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "chicken-sweet-potato-tray",
+    "name": "Chicken & sweet potato tray bake",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 10,
+    "cook": 25,
+    "skill": 2,
+    "cuisine": "Mediterranean inspired",
+    "tier": 2,
+    "items": [
+      [
+        "Chicken thighs",
+        200,
+        "protein"
+      ],
+      [
+        "Sweet potatoes",
+        250,
+        "carb"
+      ],
+      [
+        "Broccoli",
+        150,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Heat oven to 425°F / 220°C. Dice sweet potatoes into 1.5 cm cubes and toss with half the measured oil on a tray. Roast for 10 minutes.",
+      "Add chicken pieces and broccoli with remaining oil. Roast 15–20 minutes more, turning vegetables once.",
+      "Check chicken reaches 165°F / 74°C and potatoes are tender before serving."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Rosemary",
+      "Garlic powder",
+      "Paprika"
+    ]
+  },
+  {
+    "slug": "quinoa-bean-salad",
+    "name": "Quinoa, bean & avocado salad",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 20,
+    "skill": 1,
+    "cuisine": "Southwest inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Quinoa",
+        60,
+        "carb"
+      ],
+      [
+        "Beans",
+        200,
+        "protein"
+      ],
+      [
+        "Bell peppers",
+        100,
+        "fiber"
+      ],
+      [
+        "Avocado",
+        75,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Rinse quinoa and cook with package-directed water until fluffy, about 15 minutes. Spread on a plate to cool briefly.",
+      "Rinse and drain beans. Dice pepper and avocado.",
+      "Fold everything together gently. Serve warm or cool."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cumin",
+      "Lime zest",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "tofu-scramble-wrap",
+    "name": "Tofu breakfast burrito",
+    "slots": [
+      "Breakfast"
+    ],
+    "prep": 5,
+    "cook": 10,
+    "skill": 1,
+    "cuisine": "Southwest inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Tofu",
+        200,
+        "protein"
+      ],
+      [
+        "Tortillas",
+        90,
+        "carb"
+      ],
+      [
+        "Spinach",
+        50,
+        "fiber"
+      ],
+      [
+        "Bell peppers",
+        75,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        4.5,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Heat oil over medium heat. Dice pepper and cook for 3 minutes.",
+      "Crumble tofu into the pan and add optional spices. Cook 5–6 minutes, then stir in spinach until wilted.",
+      "Warm tortillas in a dry pan, add filling and fold the sides inward before rolling."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Turmeric",
+      "Cumin",
+      "Smoked paprika"
+    ]
+  },
+  {
+    "slug": "loaded-lentil-potato",
+    "name": "Loaded lentil baked potato",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 15,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Potatoes",
+        300,
+        "carb"
+      ],
+      [
+        "Lentils",
+        200,
+        "protein"
+      ],
+      [
+        "Greek yogurt",
+        100,
+        "protein"
+      ],
+      [
+        "Spinach",
+        50,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Scrub and prick potato. Microwave on a plate for 8–12 minutes, turning halfway, until the center is tender.",
+      "Warm lentils with a splash of water over medium heat for 3–4 minutes. Stir in spinach until wilted.",
+      "Split potato, fluff the center with a fork and spoon over lentils. Finish with yogurt."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Paprika",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "chicken-veggie-stir-fry",
+    "name": "Ginger chicken vegetable stir-fry",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 20,
+    "skill": 2,
+    "cuisine": "East Asian inspired",
+    "tier": 2,
+    "items": [
+      [
+        "Chicken breast",
+        175,
+        "protein"
+      ],
+      [
+        "Rice",
+        65,
+        "carb"
+      ],
+      [
+        "Mixed vegetables",
+        200,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Rinse the measured dry rice. Add water using the package ratio, bring to a boil, cover and simmer on low for the package cooking time. Rest covered for 5 minutes.",
+      "Cut the chicken into even bite-size pieces. Cook in a hot skillet with the measured oil for 7–10 minutes, turning often, until the thickest pieces reach 165°F / 74°C.",
+      "Add frozen vegetables and 2 tablespoons of water, cover for 3–4 minutes, then uncover and stir-fry until hot and tender-crisp. Serve with rice."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Ground ginger",
+      "Garlic powder",
+      "Chili flakes"
+    ]
+  },
+  {
+    "slug": "white-bean-spinach-skillet",
+    "name": "Creamy bean & spinach skillet",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 10,
+    "skill": 1,
+    "cuisine": "Mediterranean inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Beans",
+        250,
+        "protein"
+      ],
+      [
+        "Spinach",
+        100,
+        "fiber"
+      ],
+      [
+        "Bread",
+        80,
+        "carb"
+      ],
+      [
+        "Olive oil",
+        9,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Warm drained beans and measured oil with 60 mL water in a skillet over medium heat for 4–5 minutes.",
+      "Mash about a quarter of the beans against the pan to thicken the sauce. Fold in spinach for 1–2 minutes.",
+      "Toast bread and serve beside the skillet."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Thyme",
+      "Garlic powder",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "salmon-potatoes",
+    "name": "Paprika salmon & crushed potatoes",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 25,
+    "skill": 2,
+    "cuisine": "Everyday",
+    "tier": 3,
+    "items": [
+      [
+        "Salmon",
+        175,
+        "protein"
+      ],
+      [
+        "Potatoes",
+        250,
+        "carb"
+      ],
+      [
+        "Broccoli",
+        175,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Heat oven to 400°F / 200°C. Dice potatoes and boil in water for 12–15 minutes until tender.",
+      "Bake salmon on parchment for 12–16 minutes, until it reaches 145°F / 63°C and flakes easily.",
+      "Steam broccoli 4–6 minutes. Lightly crush drained potatoes with a fork and serve with fish and broccoli."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Paprika",
+      "Lemon zest"
+    ]
+  },
+  {
+    "slug": "turkey-quinoa",
+    "name": "Turkey quinoa pepper skillet",
+    "slots": [
+      "Lunch",
+      "Dinner"
+    ],
+    "prep": 5,
+    "cook": 20,
+    "skill": 2,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Ground turkey",
+        175,
+        "protein"
+      ],
+      [
+        "Quinoa",
+        60,
+        "carb"
+      ],
+      [
+        "Bell peppers",
+        125,
+        "fiber"
+      ],
+      [
+        "Spinach",
+        50,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Rinse quinoa and simmer in package-directed water until fluffy, about 15 minutes.",
+      "Cook the turkey over medium-high heat for 7–9 minutes, breaking it into small crumbles, until it reaches 165°F / 74°C.",
+      "Add diced pepper for 4–5 minutes. Fold in spinach until wilted, then combine with quinoa."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Oregano",
+      "Paprika"
+    ]
+  },
+  {
+    "slug": "yogurt-apple-dip",
+    "name": "Apple & yogurt peanut dip",
+    "slots": [
+      "Snack"
+    ],
+    "prep": 5,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Apples",
+        182,
+        "fiber"
+      ],
+      [
+        "Greek yogurt",
+        175,
+        "protein"
+      ],
+      [
+        "Peanut butter",
+        15,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Stir peanut butter into yogurt until smooth. Add a teaspoon of water if needed.",
+      "Core and slice apple. Serve the slices with the yogurt dip."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon"
+    ]
+  },
+  {
+    "slug": "egg-toast-snack",
+    "name": "Egg & avocado toast",
+    "slots": [
+      "Breakfast",
+      "Snack"
+    ],
+    "prep": 3,
+    "cook": 7,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Eggs",
+        100,
+        "protein"
+      ],
+      [
+        "Bread",
+        40,
+        "carb"
+      ],
+      [
+        "Avocado",
+        50,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Toast the bread and spread with mashed avocado.",
+      "Cook eggs in a nonstick pan over medium-low heat until yolks and whites are firm. Serve on toast."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Chili flakes",
+      "Black pepper"
+    ]
+  },
+  {
+    "slug": "berry-protein-yogurt",
+    "name": "Berry protein yogurt",
+    "slots": [
+      "Snack"
+    ],
+    "prep": 5,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Greek yogurt",
+        175,
+        "protein"
+      ],
+      [
+        "Protein powder",
+        20,
+        "protein"
+      ],
+      [
+        "Berries",
+        100,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Whisk protein powder into yogurt a little at a time, adding 1–2 tablespoons of water to smooth any lumps.",
+      "Fold in berries and serve."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Vanilla extract"
+    ]
+  },
+  {
+    "slug": "hummus-style-bean-dip",
+    "name": "Lemony bean dip & carrot sticks",
+    "slots": [
+      "Snack"
+    ],
+    "prep": 10,
+    "cook": 0,
+    "skill": 1,
+    "cuisine": "Mediterranean inspired",
+    "tier": 1,
+    "items": [
+      [
+        "Beans",
+        175,
+        "protein"
+      ],
+      [
+        "Carrots",
+        150,
+        "fiber"
+      ],
+      [
+        "Olive oil",
+        4.5,
+        "fat"
+      ]
+    ],
+    "steps": [
+      "Blend rinsed, drained beans with oil and 2–4 tablespoons water until creamy.",
+      "Add optional seasonings and pulse again. Cut carrots into sticks and serve with the dip."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Lemon zest",
+      "Cumin",
+      "Garlic powder"
+    ]
+  },
+  {
+    "slug": "cottage-toast-snack",
+    "name": "Cottage cheese cinnamon toast",
+    "slots": [
+      "Snack"
+    ],
+    "prep": 3,
+    "cook": 2,
+    "skill": 1,
+    "cuisine": "Everyday",
+    "tier": 1,
+    "items": [
+      [
+        "Cottage cheese",
+        150,
+        "protein"
+      ],
+      [
+        "Bread",
+        40,
+        "carb"
+      ],
+      [
+        "Blueberries",
+        75,
+        "fiber"
+      ]
+    ],
+    "steps": [
+      "Toast bread. Spoon cottage cheese on top and scatter blueberries over it.",
+      "Finish with cinnamon if desired and eat while the toast is crisp."
+    ],
+    "notes": "Weights refer to the ingredient form shown. Water and optional dry seasonings add no tracked portions.",
+    "seasonings": [
+      "Cinnamon"
+    ]
+  }
+]

@@ -16,8 +16,7 @@ export async function refreshGroceries(input: unknown) {
   });
   if (error)
     return {
-      error:
-        "Could not update the list. Choose a period within the next 30 days and retry.",
+      error: error.message,
     };
   revalidatePath("/", "layout");
   return { success: true };
@@ -69,17 +68,15 @@ export async function addShoppingItem(input: unknown) {
     unit = "g";
     name = f.name;
   }
-  const { error } = await client
-    .from("shopping_list_items")
-    .insert({
-      user_id: user.id,
-      list_id: list.id,
-      food_id: d.food_id,
-      name,
-      amount,
-      unit,
-      source: "manual",
-    });
+  const { error } = await client.from("shopping_list_items").insert({
+    user_id: user.id,
+    list_id: list.id,
+    food_id: d.food_id,
+    name,
+    amount,
+    unit,
+    source: "manual",
+  });
   if (error) return { error: "Your item could not be added." };
   revalidatePath("/", "layout");
   return { success: true };
@@ -90,7 +87,7 @@ export async function updateShoppingItem(input: unknown) {
       id: z.string().uuid(),
       updated_at: z.string(),
       amount: z.number().nonnegative().max(1000000).optional(),
-      purchased: z.boolean().optional(),
+
       remove: z.boolean().optional(),
     })
     .safeParse(input);
@@ -99,12 +96,9 @@ export async function updateShoppingItem(input: unknown) {
   const d = p.data;
   const query = d.remove
     ? client.from("shopping_list_items").delete()
-    : client
-        .from("shopping_list_items")
-        .update({
-          ...(d.amount !== undefined ? { amount: d.amount } : {}),
-          ...(d.purchased !== undefined ? { purchased: d.purchased } : {}),
-        });
+    : client.from("shopping_list_items").update({
+        ...(d.amount !== undefined ? { amount: d.amount } : {}),
+      });
   const { data, error } = await query
     .eq("id", d.id)
     .eq("user_id", user.id)

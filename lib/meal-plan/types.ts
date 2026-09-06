@@ -10,6 +10,9 @@ export type CatalogFood = {
   piece_g: number | null;
   nutrition: Macros;
   source: string;
+  portion_step_g?: number;
+  natural_unit?: string | null;
+  natural_unit_g?: number | null;
 };
 export type TemplateItem = {
   food_id: string;
@@ -26,6 +29,15 @@ export type MealTemplate = {
   complexity: number;
   batch_friendly: boolean;
   items: TemplateItem[];
+  recipe?: {
+    prep_minutes: number;
+    cook_minutes: number;
+    servings: number;
+    notes: string;
+    seasonings: string[];
+    cuisine: string;
+    price_tier: number;
+  };
 };
 export type PlannedMeal = {
   key: string;
@@ -61,4 +73,7 @@ export type PlanContext = {
   today: string;
   days: PlanDay[];
   revision: number;
+  units?: "metric" | "imperial";
+  pantry?: import("@/lib/pantry/inventory").PantryRecord[];
+  foodCosts?: Record<string, import("./discovery").FoodCost>;
 };

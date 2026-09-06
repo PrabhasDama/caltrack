@@ -19,6 +19,9 @@ const foodRow = z.object({
   aliases: z.array(z.string()),
   tags: z.array(z.string()),
   preparation: z.string(),
+  portion_step_g: z.coerce.number().optional(),
+  natural_unit: z.string().nullable().optional(),
+  natural_unit_g: z.coerce.number().nullable().optional(),
   food_nutrition: nutrition.nullable(),
 });
 const templateRow = z.object({
@@ -30,6 +33,17 @@ const templateRow = z.object({
   cooking_minutes: z.number(),
   complexity: z.number(),
   batch_friendly: z.boolean(),
+  recipe: z
+    .object({
+      prep_minutes: z.number(),
+      cook_minutes: z.number(),
+      servings: z.number(),
+      notes: z.string(),
+      seasonings: z.array(z.string()),
+      cuisine: z.string(),
+      price_tier: z.number(),
+    })
+    .optional(),
   meal_items: z.array(
     z.object({
       food_id: z.string(),
@@ -63,6 +77,9 @@ export async function getCatalog(
         aliases: f.aliases,
         tags: f.tags,
         preparation: f.preparation,
+        portion_step_g: f.portion_step_g,
+        natural_unit: f.natural_unit,
+        natural_unit_g: f.natural_unit_g,
         serving_g: n.serving_g,
         piece_g: n.piece_g,
         source: n.source,

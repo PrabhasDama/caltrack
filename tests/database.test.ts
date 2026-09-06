@@ -277,7 +277,7 @@ describe("pantry and grocery integration", () => {
     ).toBe(100);
     expect(await count("pantry_movements")).toBe(0);
   });
-  it("recalculates requirements while preserving manual and checked items", async () => {
+  it("recalculates fulfilled requirements without fabricating pantry while preserving manual items", async () => {
     const date = (
       await db.query<{ date: string }>(
         "select ((now() at time zone 'America/Los_Angeles')::date)::text as date",
@@ -295,7 +295,7 @@ describe("pantry and grocery integration", () => {
     ).rows[0];
     expect(Number(first.amount)).toBe(150);
     await db.exec(
-      `update public.shopping_list_items set purchased=true;insert into public.shopping_list_items(user_id,list_id,name,amount,unit,source) values('${alice}','${first.list_id}','Paper towels',2,'piece','manual')`,
+      `select public.mark_shopping_requirement(id,'already_have',updated_at) from public.shopping_list_items;insert into public.shopping_list_items(user_id,list_id,name,amount,unit,source) values('${alice}','${first.list_id}','Paper towels',2,'piece','manual')`,
     );
     await db.query("select public.refresh_shopping_list($1,$1)", [date]);
     expect(await count("shopping_list_items")).toBe(2);
@@ -305,7 +305,7 @@ describe("pantry and grocery integration", () => {
           "select purchased from public.shopping_list_items where source='generated'",
         )
       ).rows[0].purchased,
-    ).toBe(true);
+    ).toBe(false);
     await asUser(bob);
     expect(await count("shopping_list_items")).toBe(0);
   });
@@ -436,5 +436,239 @@ describe("purchases and pricing ownership", () => {
     await expect(
       db.exec("update public.store_offers set price=0"),
     ).rejects.toThrow("permission denied");
+  });
+});
+
+describe("Phase 6.5 shopping ledger", () => {
+  const session = "71000000-0000-4000-8000-000000000001",
+    item = "71000000-0000-4000-8000-000000000002",
+    event = "71000000-0000-4000-8000-000000000003";
+  async function setup() {
+    await asUser(alice);
+    await db.exec(
+      `insert into public.shopping_lists(user_id,start_date,end_date) values('${alice}',current_date,current_date);insert into public.shopping_list_items(id,user_id,list_id,food_id,name,amount,unit,source) select '${item}','${alice}',id,'${food}','Test food',400,'g','manual' from public.shopping_lists;select public.start_shopping_session('${session}',null,null,'Test market','USD',(now() at time zone 'America/Los_Angeles')::date);`,
+    );
+  }
+  async function buy(request = event) {
+    await db.query(
+      `select public.fulfill_shopping_item($1,$2,$3,(select updated_at from public.shopping_list_items where id=$3),null,null,1,'kg',4,'manual',null)`,
+      [request, session, item],
+    );
+  }
+  async function stock() {
+    return Number(
+      (
+        await db.query<{ quantity_g: string }>(
+          "select quantity_g from public.pantry_items",
+        )
+      ).rows[0]?.quantity_g || 0,
+    );
+  }
+  async function spending() {
+    return Number(
+      (
+        await db.query<{ total: string }>(
+          "select total from public.purchase_months()",
+        )
+      ).rows[0]?.total || 0,
+    );
+  }
+  it("purchases once across retries and distinct duplicate requests, including all leftover stock", async () => {
+    await setup();
+    await buy();
+    await buy();
+    await buy("71000000-0000-4000-8000-000000000004");
+    expect(await stock()).toBe(1000);
+    expect(await spending()).toBe(4);
+    expect(await count("shopping_fulfillments")).toBe(1);
+    expect(await count("purchase_items")).toBe(1);
+    expect(
+      (
+        await db.query<{ fulfillment: string }>(
+          "select fulfillment from public.shopping_list_items",
+        )
+      ).rows[0].fulfillment,
+    ).toBe("purchased");
+  });
+  it("already-have is idempotent and changes neither inventory nor spending", async () => {
+    await setup();
+    await db.exec(
+      `select public.mark_shopping_requirement('${item}','already_have',(select updated_at from public.shopping_list_items where id='${item}'));select public.mark_shopping_requirement('${item}','already_have',null);`,
+    );
+    expect(await stock()).toBe(0);
+    expect(await spending()).toBe(0);
+    expect(await count("purchase_items")).toBe(0);
+  });
+  it("undo and recheck are safe, and replay of the original request stays voided", async () => {
+    await setup();
+    await buy();
+    await db.query("select public.undo_shopping_purchase($1)", [event]);
+    await db.query("select public.undo_shopping_purchase($1)", [event]);
+    expect(await stock()).toBe(0);
+    expect(await spending()).toBe(0);
+    await buy();
+    expect(await stock()).toBe(0);
+    await buy("71000000-0000-4000-8000-000000000004");
+    expect(await stock()).toBe(1000);
+    expect(await spending()).toBe(4);
+  });
+  it("corrects price without changing inventory", async () => {
+    await setup();
+    await buy();
+    await db.query("select public.correct_shopping_purchase($1,5.25)", [event]);
+    expect(await stock()).toBe(1000);
+    expect(await spending()).toBe(5.25);
+  });
+  it("rolls back an invalid purchase with no partial receipt or stock", async () => {
+    await setup();
+    await db.exec("savepoint before_invalid");
+    await expect(
+      db.query(
+        `select public.fulfill_shopping_item($1,$2,$3,(select updated_at from public.shopping_list_items where id=$3),null,null,1,'package',4,'manual',null)`,
+        [event, session, item],
+      ),
+    ).rejects.toThrow("No reliable");
+    await db.exec("rollback to savepoint before_invalid");
+    expect(await stock()).toBe(0);
+    expect(await count("purchase_items")).toBe(0);
+    expect(await spending()).toBe(0);
+  });
+  it("refuses reversal after a related meal consumes stock", async () => {
+    await setup();
+    await buy();
+    await db.exec(
+      `insert into public.daily_meal_logs(id,user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients) values('${meal}','${alice}',current_date,'Lunch','Test',100,10,10,2,1,'[{"food_id":"${food}","quantity_g":50}]');select public.set_meal_status('${meal}','completed');`,
+    );
+    await expect(
+      db.query("select public.undo_shopping_purchase($1)", [event]),
+    ).rejects.toThrow("already have been used");
+  });
+  it("prevents ordinary receipt deletion and stale generic edits bypassing stock", async () => {
+    await setup();
+    await buy();
+    await db.exec("delete from public.purchases");
+    expect(await count("purchases")).toBe(1);
+    const p = (
+      await db.query<{ id: string }>("select id from public.purchases")
+    ).rows[0];
+    await expect(
+      db.query("select public.save_purchase($1,$2)", [
+        JSON.stringify({ id: p.id }),
+        JSON.stringify([]),
+      ]),
+    ).rejects.toThrow("shopping session");
+  });
+  it("blocks another user from reading or reversing a known purchase action", async () => {
+    await setup();
+    await buy();
+    await asUser(bob);
+    expect(await count("shopping_sessions")).toBe(0);
+    expect(await count("shopping_fulfillments")).toBe(0);
+    await expect(
+      db.query("select public.undo_shopping_purchase($1)", [event]),
+    ).rejects.toThrow("not found");
+  });
+  it("rejects direct purchased-state writes", async () => {
+    await setup();
+    await expect(
+      db.exec("update public.shopping_list_items set purchased=true"),
+    ).rejects.toThrow("permission denied");
+  });
+  it("protects an open cart from regeneration", async () => {
+    await setup();
+    await expect(
+      db.exec(
+        "select public.refresh_shopping_list((now() at time zone 'America/Los_Angeles')::date,(now() at time zone 'America/Los_Angeles')::date)",
+      ),
+    ).rejects.toThrow("Finish your shopping session");
+  });
+});
+
+describe("independent preference edits", () => {
+  async function profile() {
+    await db.exec(
+      `update public.profiles set onboarding_completed_at=now() where id='${alice}';insert into public.user_preferences(user_id,activity,workout_days,shopping_frequency,zip_code,shopping_preference,complexity,cooking_minutes,prep_frequency,meals_per_day,repeat_tolerance,disliked_foods) values('${alice}','light',3,'weekly','90210','balance',2,30,'weekly',3,'some',array['Peanuts']);`,
+    );
+    await asUser(alice);
+  }
+  it("edits cooking time without touching food preferences or onboarding", async () => {
+    await profile();
+    await db.query("select public.save_preference_section($1,$2,$3)", [
+      "cooking",
+      { cooking_minutes: 20 },
+      { cooking_minutes: 30 },
+    ]);
+    const row = (
+      await db.query<{ cooking_minutes: number; disliked_foods: string[] }>(
+        "select * from public.user_preferences",
+      )
+    ).rows[0];
+    expect(row.cooking_minutes).toBe(20);
+    expect(row.disliked_foods).toEqual(["Peanuts"]);
+    expect(
+      (
+        await db.query<{ onboarding_step: number }>(
+          "select onboarding_step from public.profiles",
+        )
+      ).rows[0].onboarding_step,
+    ).toBe(1);
+  });
+  it("preserves independent concurrent section changes", async () => {
+    await profile();
+    await db.query("select public.save_preference_section($1,$2,$3)", [
+      "cooking",
+      { cooking_minutes: 20 },
+      { cooking_minutes: 30 },
+    ]);
+    await db.query("select public.save_preference_section($1,$2,$3)", [
+      "foods",
+      { disliked_foods: ["Tofu"] },
+      { disliked_foods: ["Peanuts"] },
+    ]);
+    expect(
+      (
+        await db.query<{ cooking_minutes: number }>(
+          "select cooking_minutes from public.user_preferences",
+        )
+      ).rows[0].cooking_minutes,
+    ).toBe(20);
+  });
+  it("rejects stale section values", async () => {
+    await profile();
+    await expect(
+      db.query("select public.save_preference_section($1,$2,$3)", [
+        "cooking",
+        { cooking_minutes: 20 },
+        { cooking_minutes: 10 },
+      ]),
+    ).rejects.toThrow("changed");
+  });
+  it("applies Canadian metric defaults and keeps other profile fields", async () => {
+    await profile();
+    await db.query("select public.save_preference_section($1,$2,$3)", [
+      "units",
+      { country_code: "CA", display_units_override: null },
+      { country_code: "US", display_units_override: null },
+    ]);
+    expect(
+      (await db.query<{ units: string }>("select units from public.profiles"))
+        .rows[0].units,
+    ).toBe("metric");
+  });
+  it("rejects injecting unrelated fields into a section", async () => {
+    await profile();
+    await expect(
+      db.query("select public.save_preference_section($1,$2,$3)", [
+        "cooking",
+        { disliked_foods: [] },
+        { disliked_foods: ["Peanuts"] },
+      ]),
+    ).rejects.toThrow("Unexpected");
+  });
+  it("prevents resubmitting onboarding after completion", async () => {
+    await profile();
+    await expect(
+      db.query("select public.save_onboarding($1)", [{}]),
+    ).rejects.toThrow("Use Preferences");
   });
 });

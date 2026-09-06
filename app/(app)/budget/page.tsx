@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getBudget } from "@/lib/services/budget";
-import { budgetSummary } from "@/lib/budget/calculations";
+import { budgetSummary, budgetHealth } from "@/lib/budget/calculations";
 import { money } from "@/lib/pricing/calculations";
 import { BudgetEditor } from "@/components/budget/budget-editor";
 import { PurchaseEditor } from "@/components/budget/purchase-editor";
@@ -26,8 +26,21 @@ export default async function Budget({
     d.month,
     d.today,
   );
+  const quality =
+    d.demoHistory.find((h) => h.month === d.month && h.currency === currency)
+      ?.demo_total || 0;
+  const health = budgetHealth(
+    d.budget.monthly_amount,
+    numbers.spent,
+    current?.shopping_days || 0,
+    d.month,
+    d.today,
+  );
   const context = {
     foods: d.foods,
+    shoppingFoodIds: d.shoppingFoodIds,
+    recentFoodIds: [...new Set([...d.recentFoodIds, ...d.shoppingFoodIds])],
+    units: d.units,
     products: d.products,
     stores: d.stores,
     today: d.today,
@@ -92,6 +105,20 @@ export default async function Budget({
           />
         </section>
       </div>
+      <p className="notice">
+        <strong>
+          {health.status} · {health.percent.toFixed(0)}% used
+        </strong>
+        {health.weeklyAverage !== null &&
+          ` · ${money(health.weeklyAverage, currency)} average per week · ${money(health.costPerDay!, currency)} per calendar day`}
+      </p>
+      {quality > 0 && (
+        <p className="notice">
+          Demo pricing: {money(quality, currency)} of this month’s total is
+          simulated/estimated, pending correction from your receipts. Spending
+          and projections include these estimates.
+        </p>
+      )}
       <p className="notice">
         {numbers.projected === null
           ? "A projection appears after at least 7 days and purchases on 2 different dates in the current month."
@@ -183,8 +210,8 @@ export default async function Budget({
       <p className="fine-print muted">
         Spending uses the full receipt total. Nutrition-based costs use matched
         foods and known package weights; unmatched items have no invented
-        nutrition metrics. Purchase records and pantry stock are managed
-        separately.
+        nutrition metrics. Shopping-session purchases update pantry once. Manual
+        historical receipts only update spending.
       </p>
     </div>
   );

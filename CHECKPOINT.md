@@ -1,59 +1,81 @@
-# CalTrack Phase 1–6 checkpoint
+# CalTrack / Fuelwise Phase 6.5 checkpoint — VERIFIED
 
-Phases 4–6 are implemented on top of the existing, preserved Phase 1–3 foundation. Work stops here as requested. No Phase 7–10 work or advanced price optimization has started. Internal and visible branding remains CalTrack; the Fuelwise rename is deferred.
+User scope: Phase 6.5 correctness/core-loop pass only. **Do not begin Phases 7–10.** Advanced Phase 9 optimization has NOT been implemented. Branding/internal names remain CalTrack.
 
-## Completed this run
+## Current status and usage boundary
 
-- `/plan`: deterministic ingredient-based nutrition, template filtering, bounded portion adjustment toward saved targets, seven-day generation, day regeneration, swap preview with macro deltas, target comparison, instructions, draft/save states, optimistic revision checks, protected completed days, and generated meals integrated into Today.
-- Reference catalog: 36 normalized foods with per-100g nutrition, serving/piece weights, aliases, food form, tags and source disclosures; 12 reusable meal templates. No AI macro arithmetic.
-- `/pantry`: known-food entry, g/kg/oz/lb and supported piece/serving conversions, editing, deletion/depletion, purchase/expiry dates, low-stock state, search/filter, serving estimates and optimistic updates.
-- `/groceries`: uneaten meal requirements minus usable pantry, shopping period, required/pantry/to-buy quantities, manual additions, amount edits, purchased checkoffs, safe clearing, and explicitly labeled demo package offers/history.
-- Meal completion: transactionally consumes usable stock once; repeated concurrent requests are idempotent. Undo restores actual quantities deducted; expired stock is not consumed.
-- `/budget`: ongoing monthly target in USD or CAD, receipt and line-item create/edit/delete, matched food/product or manual items, monthly totals, remaining budget, conditional projection, basic history, paginated receipts and nutrition-cost metrics only where conversions are known.
-- Separate food, retail-product, store-location, offer, price-history and deal models. US/Canadian chain/location architecture, modular PriceProvider, DemoPriceProvider, normalized unit costs and history helpers. No FX assumption or live-price claims.
-- Navigation and private JSON export include the new features. Existing auth, onboarding and daily tracking remain intact.
+Phase 6.5 completion and verification finished on September 5, 2026 (America/Los_Angeles). Stop here; no later phase is authorized. The latest user instruction sets an **85% five-hour usage cutoff**. This verification run began with credit balance **2476.730633**; it remained unchanged at the 55% usage check before final documentation. No credit reset was redeemed. The previous checkpoint's 93%/2500 statement was stale: the user reported that the previous run reached 100% and consumed credits. Do not reuse that old statement.
 
-## Applied migrations
+The previous Phases 1–6 foundation remains in place. Their original 001–008 migrations were not edited. All new schema changes are forward migrations; no database reset occurred.
 
-Connected project: `pafgnztyzwbtvfcsmbor`. Local and remote migration history match for all 8 migrations.
+## Existing Phase 6.5 implementation retained
 
-- `202609050001_foundation.sql` — existing foundation, unchanged.
-- `202609050002_onboarding.sql` — existing onboarding, unchanged.
-- `202609050003_tracking_hardening.sql` — existing tracking, unchanged.
-- `202609050004_meal_planning.sql` — normalized nutrition/templates, private plan/day/entry tables, atomic save RPC.
-- `202609050005_food_reference.sql` — reference foods and template seeds.
-- `202609050006_pantry_groceries.sql` — pantry dates/units, private shopping tables, requirement refresh, expiry-aware meal completion.
-- `202609050007_budget_pricing.sql` — normalized retail/location/offer/history/deals, private purchases/items, atomic receipt saves and monthly aggregate RPC.
-- `202609050008_demo_offers.sql` — clearly simulated US/Canadian pricing samples.
+- Atomic grocery purchasing: `shopping_sessions` and `shopping_fulfillments` connect a shopping requirement, selected product/offer and receipt line to an additive pantry movement and running receipt/budget total. One database transaction; stable request UUID plus unique active fulfillment prevents duplicate stock/spending even with different duplicate request IDs.
+- “Already have it” fulfills a requirement without stock or spending. Old checkmarks migrate to this state rather than inventing historical receipts.
+- Explicit purchase reversal is idempotent, removes the exact added quantity and spending, and blocks when that stock may already have been consumed. Price correction changes spending without changing inventory. Session receipts cannot be modified/deleted through the generic manual receipt flow. Session finishing and recent receipt corrections are exposed on Groceries.
+- New `/preferences` with independent Goals, Macros, Budget, Cooking/meal count/prep/repetition, Dietary exclusions, Preferred/disliked foods, Stores, Shopping, Activity, Profile and Country/measurement sections. Writes compare only the section's previous fields and preserve unrelated data. Completed users visiting onboarding are redirected; stale onboarding submission is rejected. Explicit link to regenerate, with existing plans preserved.
+- Food-specific portion normalization and macro recalculation from the resulting canonical grams. Whole eggs/bananas/slices/tortillas; practical weight increments. Whole-recipe scaling replaces independent ingredient inflation. Configurable macro tolerances. Country defaults/overrides and deterministic weight/volume helpers; volume conversions require known density.
+- 43 coherent recipes, with prep/cook/total time, difficulty, servings, preparation notes, optional seasonings and authored numbered instructions. Forward updates preserve template IDs and historical logged nutrition. Cooking temperature source is linked in README and migration.
+- More varied regeneration, search and Recommended/Higher Protein/Lower Calorie/Cheaper/Quick Prep/Browse All swap filters. Completed/locked meals show a clear explanation and link to undo tracking, with no fake swap action.
+- “Cook From My Pantry”: coverage, missing ingredients, macro fit, cooking constraints, near-expiry use and clearly labeled demo extra-package estimates. Objectives: pantry first, extra spend, macro fit and expiring stock. No multi-store optimizer.
+- Practical package references (eggs by dozen, bread loaves, cans, tubs, tofu blocks, fruit counts) preserve old product records used by historical receipts. Deterministic smallest-sufficient package-combination helper and leftover quantity separation. New package offers remain explicitly simulated.
+- Manual receipt editor prioritizes shopping-list/recent items and exposes broader catalog through Add Something Else. A shopping-list shortcut uses the connected checkout flow; manual historical receipts remain spend-only.
+- Budget health states, percent used, conditional weekly/day averages and projections. Demo amounts are separately identified within spending. Shopping-origin receipts link to corrections. Export format 3 includes sessions and fulfillments.
+- Receipt metadata supports future reviewed scanning; OCR/extraction and nutrition-label scanning are NOT implemented.
 
-Old applied migrations were not rewritten. New shared tables are read-only to authenticated users; private rows use owner RLS, with composite owner foreign keys where appropriate. Elevated mutations check the caller and anonymous execution is revoked.
+## Migrations
 
-## Verification
+Linked Supabase project: `pafgnztyzwbtvfcsmbor`.
 
-- TypeScript: PASS.
-- ESLint: PASS.
-- Vitest: **59 tests pass across 6 files**, including actual PostgreSQL migrations/RLS in PGlite, deterministic meal math/portions/exclusions, shopping and pantry calculations, inventory idempotency, unit conversions, receipt math/ownership/idempotency, separate currencies, price metrics and history.
-- Production build: PASS (`npm run build`, Next.js 16.3.4). A cached sandbox process error was resolved by clearing only generated Turbopack cache and rebuilding with required process access; no source workaround was needed.
-- Playwright: **1 complete workflow passes**. Login → saved onboarding resume → dashboard controls → generate/swap/save week → grocery requirements → add/edit pantry → recalculate groceries → complete meal → three concurrent duplicate completions → exactly one stock deduction → matched purchase → budget total → logout/login → persisted plans, inventory, shopping and receipt. Existing tracking/export checks retained. Desktop and 390px mobile layouts checked; screenshots in ignored `test-results/`.
-- Live Supabase SQL: Phase 4–6 save/recalculation/receipt idempotency, cross-user isolation, catalog write rejection, all-public-table RLS and anonymous RPC rejection PASS. Fixtures rolled back. Prior live Phase 1–3 checks remain recorded in README and `supabase/tests/security.sql`.
+- 001–008: existing phases, unchanged.
+- `202609050009_shopping_sessions.sql`: receipts/session/event ledger, checkout/reversal/correction/state RPCs, private RLS, restricted direct writes, atomic totals and demo-spending summary.
+- `202609050010_preferences.sql`: country/measurement override and atomic section updates; initial-onboarding-only wrapper.
+- `202609050011_practical_recipes.sql`: practical food units and 43 structured recipes.
+- `202609050012_realistic_packages.sql`: new active package references and demo offers; old products retained inactive for historical receipts.
+- `202609050013_whole_purchase_units.sql`: whole-number piece/package purchases on new writes, without rewriting legacy quantities.
 
-## Known limitations and deferred scope
+**All 001–013 migrations match the linked remote history.** No migrations were added or edited in this verification run. No reset or data rewrite was needed.
 
-- Nutrition is a labeled development reference estimate, not a verified packaged-product database. The heuristic may miss individual targets; deviations are displayed. No guarantee every restriction/target combination has a viable template.
-- All offer prices, histories and promotions are simulated and say “Demo pricing.” There is no live retailer integration, cart optimizer, distance routing, predictive price recommendation, advanced Smart Swap or predictive inventory.
-- Pantry is one aggregate row per ingredient, not multiple expiring lots. Grocery availability conservatively excludes stock expiring before the selected shopping period ends. Volumes without reliable density are unsupported.
-- Pantry stocking, grocery checkoffs and purchase logging are separate explicit actions.
-- USD and CAD are kept separate. Original US onboarding ZIP/store preferences are preserved; broader Canadian onboarding is not added. Changing the monthly budget sets the ongoing target; historical targets are not snapshotted.
-- Real SMTP/inbox confirmation/recovery testing and Vercel deployment remain pending from the foundation. This run did not deploy or add photos/storage/notifications.
+## Fixes in this verification run
 
-## Exact next step
+- Fixed the browser's rejection of whole package/piece purchases: `min=.001` combined with `step=1` made integer quantities invalid. Discrete purchase inputs now use minimum 1 and step 1. The browser regression checks the actual native validity before checkout and then verifies committed stock/spending.
+- Today now formats ingredient snapshots in the user's selected units and known natural counts without changing stored grams or nutrition. Receipts retain original price/quantity units and add a converted food amount; checkout and demo package displays use the selected measurement system.
+- Manual receipt matching shows active retail packages before loose foods, retains historical products needed to edit existing receipts, and includes shopping items plus ingredients from recent and upcoming saved meals in Recent / Planned Groceries.
+- Recipe instructions visibly retain step numbers. Planned totals outside the configured tolerance show a plain target-range note; these are estimates and the generator does not guarantee every macro target.
+- Corrected the Cooking time browser locator and added a 15-second action timeout so missing controls fail promptly. Added browser coverage for country-default metric settings, preservation of saved nutrition/plans, search/filter empty states, pantry meal selection, and mobile dialogs.
+- Restarted an unresponsive local preview. No application workaround was needed for that process issue.
 
-**Stop.** When the user explicitly resumes: **Phase 7 — progress analytics, charts and weekly summaries**, per the master specification. Do not start Phase 8 (photos/storage/meal prep), Phase 9 (advanced optimization), or Phase 10 (deployment) without the appropriate requested scope.
+## Final validation
 
-Local preview: http://127.0.0.1:3000. Runtime environment uses only the supplied public Supabase configuration; no service-role key is exposed to the app.
+- **92 automated tests across 7 files pass**, including all prior domain/Postgres tests with the intentional new fulfillment semantics, plus atomic purchases/retries/reversal/price correction, already-have, no partial writes, consumed-stock reversal rejection, protected receipts, RLS, independent preference writes, stale edits, country defaults, whole portions, exact recalculated macros, recipe ratios, variety, swaps, pantry ranking, package combinations and budget health.
+- **TypeScript, lint, and production build pass after the final code changes.** `git diff --check` passes.
+- **Both browser scenarios pass in the final fresh-account run (1.2 minutes):** `core.spec.ts` and `phase65-review.spec.ts`. They retain the prior auth/onboarding/tracking checks and verify the Phase 6.5 workflow below. No browser page errors were recorded.
+- All three live rollback-only SQL suites pass: `security.sql`, `phases_4_6_security.sql`, and `phase65_security.sql`. Coverage includes exact pantry/spending, concurrent retries, already-have, correction/reversal, private owner isolation, anonymous RPC denial and read-only pricing. Fixtures rolled back; all public tables have RLS.
+- Checked 29 production browser bundles: no administrative secret key or service-role JWT matches. Runtime configuration uses the public project URL and publishable key; `.env.local` and disposable `.env.qa` are ignored by Git.
 
-## Cleanup and usage stop
+## Browser workflows verified
 
-Temporary QA account and all its records were removed after the passing browser test; `.env.qa` no longer exists. SQL fixtures were rolled back. Final whitespace check passed.
+- Completed account edits Cooking time directly; only that preference section changes. Visiting onboarding redirects to preferences.
+- Generate, swap, save and regenerate meals; inspect practical portions and recipes. Completed/eaten meals have a clear explanation and no swap button. Numbered instructions, prep/cook times, food preparation forms, and searched swap alternatives were visually reviewed.
+- Switch Canada + Country default to metric; verify Today/planner displays and unchanged saved nutrition/plans/budget, then restore US customary. Pantry changes 2000 g → 2 kg → 2000 g without changing inventory.
+- Pantry discovery shows positive stock coverage, missing foods and labeled demo estimates; selecting a breakfast fills the editable day's draft. Filters and no-match search behavior work.
+- Generate groceries, select a Walmart shopping session, confirm a whole package purchase, verify exact stock and receipt total, repeat the same request concurrently three times, and verify no duplicate fulfillment or pantry quantity.
+- Already Have It completes another requirement without adding purchase lines or pantry stock. Correct price updates the receipt, finish closes the session, and Budget shows the sum of the manual receipt and corrected shopping receipt exactly once.
+- Manual Log Purchase defaults to shopping-list matching, shows packages first and supports Recent / Planned. Receipts/corrections and the budget were visually inspected.
+- Desktop 1440×1000 and mobile 390×844 layouts checked, including preferences, planner, groceries, pantry, budget and scrollable dialogs. Screenshot artifacts are under ignored `test-results/`; relevant recipe, swap, pantry discovery, preferences, receipt/correction and budget screenshots were reviewed.
 
-Last account check: **91% of the five-hour allowance used**, with the credit balance unchanged at **2,500**. No credits consumed and no reset redeemed. Stopped with a usage buffer; no speculative follow-up work.
+No Phase 6.5 completion work remains within the requested scope. The full browser suite assumes a fresh isolated QA account and one worker; the second scenario reviews the account created and completed by the first. Follow README's setup/run/cleanup sequence when rerunning.
+
+Final cleanup confirmed: the temporary Supabase QA account and its records were deleted, and `.env.qa` is absent. Final usage check before this closing note: **60% of the five-hour window**, below the user's 85% cutoff; credit balance **2476.7306330000**, unchanged from this run's baseline. No reset used. Work stopped after Phase 6.5 verification.
+
+## Limits to preserve
+
+- Changing display units preserves previously saved canonical grams and nutrition. Existing imperial portions can therefore show decimal grams after switching to metric; explicit regeneration uses metric portion steps. Historical receipt price units remain as entered, with converted amounts shown alongside them.
+- Macro fitting is a deterministic best effort with practical recipe ratios. Some generated days, especially legume-heavy combinations, exceed fiber targets; the UI now identifies values outside the target range. No claim of exact macro matching or independently verified branded nutrition.
+- Checkout selects one product size per shopping row; the current active demo catalog has one practical package per food. The package helper supports combinations, but multi-product/store optimization remains outside this phase. Volume conversions require known density; no invented cup conversions.
+
+- No real retailer/provider integration. All seeded offers and cost estimates remain Demo pricing; never label them today's verified prices. Manual receipt price is distinct from a demo estimate.
+- Pantry is aggregate per food, not separate lots. Expired stock must be depleted before adding a fresh purchase of the same food. Reversal is conservative after meal consumption.
+- Purchase-session totals sum item prices; full receipt taxes/discount allocation is not yet provided in the shopping-session UI. Manual historical receipts support a total including tax.
+- No receipt OCR, label OCR, camera/storage feature, advanced store/cart/distance optimizer, photos or expanded progress analytics. Phase 7/8/9 should build on the canonical food/product/offer/receipt/event separation.
+- Broader Canadian postal/store onboarding is still deferred; country and measurement defaults are now directly editable.

@@ -22,12 +22,14 @@ export async function GET() {
     "meal_plan_entries",
     "shopping_lists",
     "shopping_list_items",
+    "shopping_sessions",
+    "shopping_fulfillments",
     "purchases",
     "purchase_items",
   ];
   const result: Record<string, unknown> = {
     exported_at: new Date().toISOString(),
-    format_version: 2,
+    format_version: 3,
   };
   for (const table of tables) {
     const rows: unknown[] = [];

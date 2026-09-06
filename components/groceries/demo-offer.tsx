@@ -5,14 +5,17 @@ import {
 } from "@/lib/pricing/calculations";
 import type { CatalogFood } from "@/lib/meal-plan/types";
 import type { StoreOffer, PriceObservation } from "@/lib/pricing/types";
+import { formatPackage } from "@/lib/shopping/display";
 export function DemoOffer({
   offer,
   food,
   history,
+  units,
 }: {
   offer: StoreOffer;
   food: CatalogFood;
   history: PriceObservation[];
+  units: "imperial" | "metric";
 }) {
   const prices = unitPrices(
     offer.price,
@@ -25,8 +28,8 @@ export function DemoOffer({
     <div className="demo-offer">
       <span className="status-pill">Demo pricing</span>
       <strong>
-        {money(offer.price, offer.currency)} / {offer.product.package_amount}{" "}
-        {offer.product.package_unit}
+        {money(offer.price, offer.currency)} /{" "}
+        {formatPackage(offer.product, food, units)}
       </strong>
       <p>
         {offer.product.name} · {offer.location.name}

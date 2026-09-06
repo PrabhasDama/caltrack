@@ -23,6 +23,7 @@ export async function getInventory() {
     throw new Error("Your inventory could not be loaded.");
   return {
     foods: catalog.foods,
+    units: profile.units as "imperial" | "metric",
     pantry: items.data as PantryRecord[],
     today: localDate(profile.timezone),
     shopping: list.data

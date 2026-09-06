@@ -2896,6 +2896,7 @@ p {
   border-radius: 8px;
 }
 .target-comparison > div > small {
+  display: block;
   font-size: 9px;
   color: var(--muted);
 }
@@ -2967,6 +2968,7 @@ p {
   color: var(--foreground);
 }
 .plan-meal details ol {
+  list-style-type: decimal;
   padding-left: 18px;
 }
 .plan-meal details li {
@@ -3539,4 +3541,188 @@ p {
   border-radius: 99px;
   padding: 4px 9px;
   font-weight: 700;
+}
+
+/* Phase 6.5: independent settings and the connected shopping workflow. */
+.preferences-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0;
+}
+.preference-card,
+.session-panel,
+.pantry-discovery {
+  padding: 24px;
+}
+.preference-card h2,
+.session-panel h2 {
+  margin: 8px 0;
+}
+.preference-values {
+  line-height: 1.8;
+  margin: 18px 0;
+}
+.store-checkboxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.store-checkboxes label {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.session-panel {
+  margin: 24px 0;
+}
+.session-panel p {
+  line-height: 1.7;
+}
+.session-history {
+  margin-top: 18px;
+}
+.session-history summary {
+  cursor: pointer;
+  font-size: 13px;
+  padding: 10px 0;
+}
+.session-history article {
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+}
+.session-line {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+.discovery-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.discovery-filters button {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 12px;
+}
+.discovery-filters button[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+.pantry-discovery {
+  margin: 24px 0;
+}
+.pantry-discovery > .field {
+  max-width: 250px;
+  margin-top: 20px;
+}
+.discovery-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.discovery-recipe {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  min-width: 0;
+}
+.discovery-recipe p {
+  line-height: 1.7;
+  margin: 10px 0;
+}
+.discovery-recipe details {
+  margin: 15px 0;
+}
+.discovery-recipe summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+.discovery-recipe ol {
+  list-style-type: decimal;
+  padding-left: 20px;
+  line-height: 1.8;
+  font-size: 13px;
+}
+.ingredient-list strong {
+  white-space: normal;
+  text-align: right;
+  max-width: 55%;
+}
+.shopping-row-main {
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 190px) 32px;
+}
+.buy-amount strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+.shopping-row-detail {
+  margin-left: 0;
+}
+.shopping-row > .purchase-actions {
+  margin-left: 0;
+  margin-bottom: 12px;
+}
+.shopping-row.purchased {
+  opacity: 1;
+}
+.purchase-card .pill {
+  display: block;
+  margin-top: 5px;
+}
+.dialog-content input[type="checkbox"] {
+  width: auto;
+}
+.notice .button {
+  margin-top: 12px;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+@media (max-width: 700px) {
+  .preferences-grid,
+  .discovery-results {
+    grid-template-columns: 1fr;
+  }
+  .store-checkboxes {
+    grid-template-columns: 1fr;
+  }
+  .session-panel,
+  .pantry-discovery,
+  .preference-card {
+    padding: 20px;
+  }
+  .session-panel > .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .shopping-row-main {
+    grid-template-columns: minmax(0, 1fr) minmax(90px, 130px) 26px;
+    gap: 9px;
+  }
+  .buy-amount strong {
+    font-size: 12px;
+  }
+  .shopping-row .purchase-actions {
+    gap: 6px;
+  }
+  .shopping-row .purchase-actions .button {
+    padding: 9px 12px;
+  }
+  .ingredient-list li {
+    align-items: start;
+  }
+  .discovery-filters {
+    gap: 6px;
+  }
+  .discovery-filters button {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
 }

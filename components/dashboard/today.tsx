@@ -23,6 +23,7 @@ import {
 import type { DashboardData, Meal } from "@/types/domain";
 import { formatDate, addDays, mondayOf, localDate } from "@/lib/date";
 import { formatWeight, fromKg } from "@/lib/nutrition/units";
+import { formatFoodQuantity } from "@/lib/food/quantities";
 import { dailySummary, weightProgress } from "@/lib/analytics/daily";
 import {
   setCheck,
@@ -80,7 +81,15 @@ function Meter({
     </div>
   );
 }
-function MealCard({ meal }: { meal: Meal }) {
+function MealCard({
+  meal,
+  foods,
+  units,
+}: {
+  meal: Meal;
+  foods: DashboardData["foods"];
+  units: DashboardData["profile"]["units"];
+}) {
   const { pending, error, run } = useMutation();
   return (
     <article className={`meal-card ${meal.status}`}>
@@ -99,7 +108,14 @@ function MealCard({ meal }: { meal: Meal }) {
       <p className="meal-ingredients">
         {meal.ingredients.length
           ? meal.ingredients
-              .map((i) => `${i.quantity_g} g ${i.name}`)
+              .map(
+                (i) =>
+                  `${formatFoodQuantity(
+                    i.quantity_g,
+                    foods.find((f) => f.id === i.food_id),
+                    units,
+                  )} ${i.name}`,
+              )
               .join(" · ")
           : "Portions included in your nutrition totals"}
       </p>
@@ -725,7 +741,12 @@ export function TodayDashboard({
         {data.meals.length ? (
           <div className="meals-grid">
             {data.meals.map((meal) => (
-              <MealCard key={meal.id} meal={meal} />
+              <MealCard
+                key={meal.id}
+                meal={meal}
+                foods={data.foods}
+                units={data.profile.units}
+              />
             ))}
           </div>
         ) : (

@@ -4,21 +4,41 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@/components/dashboard/use-mutation";
 import { savePantry } from "@/app/(app)/pantry/actions";
-import { foodUnits, gramsToQuantity, type FoodUnit } from "@/lib/pantry/units";
+import {
+  foodUnits,
+  gramsToQuantity,
+  quantityToGrams,
+  type FoodUnit,
+} from "@/lib/pantry/units";
 import type { CatalogFood } from "@/lib/meal-plan/types";
 import type { PantryRecord } from "@/lib/pantry/inventory";
 export function PantryEditor({
   foods,
   item,
   children,
+  units = "metric",
 }: {
   foods: CatalogFood[];
   item?: PantryRecord;
   children: React.ReactNode;
+  units?: "metric" | "imperial";
 }) {
   const [open, setOpen] = useState(false);
   const [foodId, setFoodId] = useState(item?.food_id || "");
-  const [unit, setUnit] = useState<FoodUnit>(item?.display_unit || "g");
+  const [unit, setUnit] = useState<FoodUnit>(
+    item?.display_unit || (units === "imperial" ? "oz" : "g"),
+  );
+  const [quantity, setQuantity] = useState(
+    item
+      ? String(
+          gramsToQuantity(
+            item.quantity_g,
+            item.display_unit,
+            foods.find((f) => f.id === item.food_id),
+          ),
+        )
+      : "",
+  );
   const { pending, error, run } = useMutation();
   const food = foods.find((f) => f.id === foodId);
   return (
@@ -60,7 +80,14 @@ export function PantryEditor({
               disabled={Boolean(item)}
               onChange={(e) => {
                 setFoodId(e.target.value);
-                setUnit("g");
+                setQuantity("");
+                setUnit(
+                  foods.find((f) => f.id === e.target.value)?.piece_g
+                    ? "piece"
+                    : units === "imperial"
+                      ? "oz"
+                      : "g",
+                );
               }}
             >
               <option value="">Choose a food</option>
@@ -87,17 +114,8 @@ export function PantryEditor({
                 min="0"
                 max="1000000"
                 step="any"
-                defaultValue={
-                  item
-                    ? Number(
-                        gramsToQuantity(
-                          item.quantity_g,
-                          item.display_unit,
-                          food,
-                        ).toFixed(3),
-                      )
-                    : ""
-                }
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
               />
             </label>
             <label className="field">
@@ -105,7 +123,22 @@ export function PantryEditor({
               <select
                 aria-label="Pantry unit"
                 value={unit}
-                onChange={(e) => setUnit(e.target.value as FoodUnit)}
+                onChange={(e) => {
+                  const next = e.target.value as FoodUnit;
+                  if (quantity !== "")
+                    setQuantity(
+                      String(
+                        Number(
+                          gramsToQuantity(
+                            quantityToGrams(Number(quantity), unit, food),
+                            next,
+                            food,
+                          ).toFixed(6),
+                        ),
+                      ),
+                    );
+                  setUnit(next);
+                }}
               >
                 {foodUnits(food).map((u) => (
                   <option key={u} value={u}>

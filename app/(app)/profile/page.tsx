@@ -32,7 +32,7 @@ export default async function Profile() {
           </h1>
           <p>Your preferences shape your daily rhythm.</p>
         </div>
-        <Link className="button" href="/onboarding">
+        <Link className="button" href="/preferences">
           Edit profile & plan <ArrowUpRight size={14} />
         </Link>
       </header>
@@ -134,7 +134,7 @@ export default async function Profile() {
             </div>
           </dl>
           <p className="fine-print muted" style={{ marginTop: 20 }}>
-            Preferences are ready for future grocery planning. CalTrack does not
+            Your preferences guide meal planning. CalTrack does not
             display live store prices in this phase.
           </p>
         </section>

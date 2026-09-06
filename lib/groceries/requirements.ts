@@ -43,5 +43,6 @@ export type ShoppingItem = {
   unit: string;
   source: "generated" | "manual";
   purchased: boolean;
+  fulfillment?: "needed" | "purchased" | "already_have";
   updated_at: string;
 };

@@ -1,4 +1,5 @@
 import type { Macros } from "@/lib/nutrition/macros";
+import { targetTolerances } from "@/lib/meal-plan/generator";
 export function MacroComparison({
   actual,
   target,
@@ -27,6 +28,13 @@ export function MacroComparison({
           <small>
             {k === "calories" ? "kcal" : "grams"} · planned / target
           </small>
+          {Math.abs(actual[k] - target[k]) >
+            Math.max(1, target[k]) * targetTolerances[k] && (
+            <small className="muted">
+              {actual[k] < target[k] ? "Below" : "Above"} target range · review
+              portions or swap a meal.
+            </small>
+          )}
         </div>
       ))}
     </div>

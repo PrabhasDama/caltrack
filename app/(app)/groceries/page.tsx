@@ -1,10 +1,15 @@
+import { getShoppingContext } from "@/lib/services/shopping";
 import { getInventory } from "@/lib/services/inventory";
 import { getDemoPricing } from "@/lib/services/pricing";
 import { GroceryWorkspace } from "@/components/groceries/grocery-workspace";
 import { DemoOffer } from "@/components/groceries/demo-offer";
 export const metadata = { title: "Your groceries" };
 export default async function Groceries() {
-  const [d, pricing] = await Promise.all([getInventory(), getDemoPricing()]);
+  const [d, pricing, context] = await Promise.all([
+    getInventory(),
+    getDemoPricing(),
+    getShoppingContext(),
+  ]);
   const offers = await pricing.provider.getOffers(
     d.foods.map((f) => f.id),
     pricing.currency,
@@ -15,6 +20,7 @@ export default async function Groceries() {
     if (food && !views[food.id])
       views[food.id] = (
         <DemoOffer
+          units={d.units}
           offer={offer}
           food={food}
           history={await pricing.provider.getPriceHistory(offer.id)}
@@ -23,6 +29,8 @@ export default async function Groceries() {
   }
   return (
     <GroceryWorkspace
+      context={context}
+      units={d.units}
       foods={d.foods}
       shopping={d.shopping}
       today={d.today}

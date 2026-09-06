@@ -170,6 +170,36 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
   await page.goto("/settings");
   await page.getByRole("button", { name: "Light", exact: true }).click();
   await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/preferences");
+  const beforePreferences = await (
+    await page.request.get("/api/export")
+  ).json();
+  await page
+    .getByRole("button", { name: "Edit meals & cooking", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Cooking time", exact: true })
+    .selectOption("20");
+  await page
+    .getByRole("button", { name: "Save meals & cooking", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("status")).toContainText("updated");
+  const afterPreferences = await (await page.request.get("/api/export")).json();
+  expect(afterPreferences.user_preferences[0].cooking_minutes).toBe(20);
+  expect(afterPreferences.user_preferences[0].disliked_foods).toEqual(
+    beforePreferences.user_preferences[0].disliked_foods,
+  );
+  expect(afterPreferences.macro_targets).toEqual(
+    beforePreferences.macro_targets,
+  );
+  expect(afterPreferences.budgets).toEqual(beforePreferences.budgets);
+  await page.goto("/onboarding");
+  await expect(page).toHaveURL(/\/preferences/);
+  await page.screenshot({
+    path: "test-results/preferences-desktop.png",
+    fullPage: true,
+  });
   await page.goto("/plan");
   await page
     .getByRole("button", { name: "Generate week", exact: true })
@@ -221,12 +251,24 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
     .getByRole("button", { name: "Add ingredient", exact: true })
     .click();
   await page.getByLabel("Pantry ingredient").selectOption(ingredient.food_id);
+  await page.getByLabel("Pantry unit").selectOption("g");
   await page.getByLabel("Quantity", { exact: true }).fill("2000");
+  await page.getByLabel("Pantry unit").selectOption("kg");
+  await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("2");
+  await page.getByLabel("Pantry unit").selectOption("g");
+  await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue(
+    "2000",
+  );
   await page
     .getByRole("button", { name: "Save pantry item", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.locator(".pantry-card .large-value")).toHaveText("2 kg");
+  expect(
+    Number(
+      (await (await page.request.get("/api/export")).json()).pantry_items[0]
+        .quantity_g,
+    ),
+  ).toBe(2000);
   await page
     .getByRole("button", { name: "Edit quantity", exact: true })
     .click();
@@ -300,6 +342,10 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
   ).toHaveLength(1);
   await page.goto("/budget");
   await page.getByRole("button", { name: "Log purchase", exact: true }).click();
+  await expect(page.getByLabel("Item 1 source")).toHaveValue("shopping");
+  await expect(
+    page.getByLabel("Match item 1").locator("optgroup").first(),
+  ).toHaveAttribute("label", "Demo retail packages");
   await page.getByLabel("Purchase store").selectOption({ label: "Costco" });
   await page
     .getByLabel("Match item 1")
@@ -347,5 +393,193 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
     consumed.pantry_items[0].quantity_g,
   );
   expect(persisted.shopping_list_items.length).toBeGreaterThan(0);
+  // Phase 6.5: pantry discovery, completed-meal state, and the atomic shopping loop.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/plan");
+  await expect(
+    page.getByText("Meal already completed.", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator(".plan-meal")
+      .filter({ hasText: "Meal already completed." })
+      .getByRole("button", { name: "Swap meal" }),
+  ).toHaveCount(0);
+  await page.locator(".plan-week button").nth(1).click();
+  const previousNames = await page.locator(".plan-meal h3").allTextContents();
+  await page
+    .getByRole("button", { name: "Regenerate day", exact: true })
+    .click();
+  expect(await page.locator(".plan-meal h3").allTextContents()).not.toEqual(
+    previousNames,
+  );
+  await page.getByRole("button", { name: "Save plan", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Save plan", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Cook From My Pantry", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Cook From My Pantry", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".discovery-recipe")).not.toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Use Expiring Ingredients", exact: true })
+    .click();
+  await page.screenshot({
+    path: "test-results/pantry-discovery-desktop.png",
+    fullPage: true,
+  });
+  await page.goto("/groceries");
+  await page
+    .getByRole("button", { name: "Update from meal plan", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toBeVisible();
+  const requirements = await (await page.request.get("/api/export")).json();
+  const need = requirements.shopping_list_items.find(
+    (i: { amount: number; food_id: string | null }) =>
+      i.food_id && Number(i.amount) > 0 && i.food_id !== ingredient.food_id,
+  );
+  expect(need).toBeTruthy();
+  await page
+    .getByRole("button", { name: "Start shopping", exact: true })
+    .click();
+  await page.getByLabel("Shopping store").selectOption({ label: "Walmart" });
+  await page.getByLabel("Shopping location").selectOption({ index: 1 });
+  await page
+    .getByRole("button", { name: "Start this shopping trip", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Shopping at Walmart" }),
+  ).toBeVisible();
+  const row = page.locator(".shopping-row").filter({
+    has: page.getByRole("heading", { name: need.name, exact: true }),
+  });
+  await row.getByRole("button", { name: "Purchase", exact: true }).click();
+  await page.getByLabel("Purchase unit price", { exact: true }).fill("4.00");
+  const packageCount = Number(
+    await page.getByLabel("Purchased quantity", { exact: true }).inputValue(),
+  );
+  expect(Number.isInteger(packageCount)).toBe(true);
+  expect(
+    await page
+      .getByLabel("Purchased quantity", { exact: true })
+      .evaluate((input: HTMLInputElement) => input.validity.valid),
+  ).toBe(true);
+  await page
+    .getByRole("button", { name: "Confirm purchase", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(row).toContainText("Purchased · pantry and budget updated");
+  const bought = await (await page.request.get("/api/export")).json();
+  const event = bought.shopping_fulfillments.find(
+    (e: { item_id: string; state: string }) =>
+      e.item_id === need.id && e.state === "purchased",
+  );
+  expect(event).toBeTruthy();
+  const pantryBefore = Number(
+    requirements.pantry_items.find(
+      (p: { food_id: string }) => p.food_id === need.food_id,
+    )?.quantity_g || 0,
+  );
+  expect(
+    Number(
+      bought.pantry_items.find(
+        (p: { food_id: string }) => p.food_id === need.food_id,
+      ).quantity_g,
+    ),
+  ).toBeCloseTo(pantryBefore + Number(event.added_g), 2);
+  const cart = bought.shopping_sessions.find(
+    (s: { id: string }) => s.id === event.session_id,
+  );
+  const purchase = bought.purchases.find(
+    (p: { id: string }) => p.id === cart.purchase_id,
+  );
+  expect(Number(purchase.total)).toBe(packageCount * 4);
+  const purchaseLine = bought.purchase_items.find(
+    (p: { id: string }) => p.id === event.purchase_item_id,
+  );
+  const again = await Promise.all(
+    Array.from({ length: 3 }, () =>
+      client.rpc("fulfill_shopping_item", {
+        p_request: event.id,
+        p_session: cart.id,
+        p_item: need.id,
+        p_expected: need.updated_at,
+        p_product: purchaseLine.retail_product_id,
+        p_offer: null,
+        p_quantity: purchaseLine.quantity,
+        p_unit: purchaseLine.unit,
+        p_price: 4,
+        p_price_source: "manual",
+        p_expires: null,
+      }),
+    ),
+  );
+  for (const r of again) expect(r.error).toBeNull();
+  const repeated = await (await page.request.get("/api/export")).json();
+  expect(repeated.shopping_fulfillments).toHaveLength(1);
+  expect(repeated.pantry_items).toEqual(bought.pantry_items);
+  const have = requirements.shopping_list_items.find(
+    (i: { id: string; amount: number }) =>
+      i.id !== need.id && Number(i.amount) > 0,
+  );
+  await page
+    .locator(".shopping-row")
+    .filter({
+      has: page.getByRole("heading", { name: have.name, exact: true }),
+    })
+    .getByRole("button", { name: "Already have it", exact: true })
+    .click();
+  const already = await (await page.request.get("/api/export")).json();
+  expect(already.purchase_items).toHaveLength(bought.purchase_items.length);
+  expect(already.pantry_items).toEqual(bought.pantry_items);
+  expect(
+    already.shopping_list_items.find((i: { id: string }) => i.id === have.id)
+      .fulfillment,
+  ).toBe("already_have");
+  await row.getByRole("button", { name: "Correct price", exact: true }).click();
+  await page.getByLabel("Price per package", { exact: true }).fill("4.50");
+  await page
+    .getByRole("button", { name: "Save corrected price", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Finish shopping", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Start shopping", exact: true }),
+  ).toBeVisible();
+  await page.goto("/budget");
+  await expect(page.getByTestId("budget-spent")).toHaveText(
+    `USD ${(3.5 + packageCount * 4.5).toFixed(2)}`,
+  );
+  await expect(page.getByText("Within budget", { exact: false })).toBeVisible();
+  await page.screenshot({
+    path: "test-results/connected-budget-desktop.png",
+    fullPage: true,
+  });
+  for (const route of [
+    "preferences",
+    "plan",
+    "groceries",
+    "pantry",
+    "budget",
+  ]) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`/${route}`);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: `test-results/phase65-${route}-mobile.png`,
+      fullPage: true,
+    });
+  }
   expect(errors).toEqual([]);
 });

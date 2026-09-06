@@ -19,6 +19,8 @@ import { addDays } from "@/lib/date";
 import type { CatalogFood } from "@/lib/meal-plan/types";
 import type { ShoppingItem } from "@/lib/groceries/requirements";
 import { ShoppingEditor } from "./shopping-editor";
+import { SessionPanel } from "./session-panel";
+import type { ShoppingContext } from "@/lib/shopping/types";
 import { ShoppingRow } from "./shopping-row";
 export type ShoppingList = {
   id: string;
@@ -32,11 +34,15 @@ export function GroceryWorkspace({
   shopping,
   today,
   offers = {},
+  context,
+  units = "metric",
 }: {
   foods: CatalogFood[];
   shopping: ShoppingList | null;
   today: string;
   offers?: Record<string, React.ReactNode>;
+  context: ShoppingContext;
+  units?: "metric" | "imperial";
 }) {
   const { pending, error, run } = useMutation();
   const [start, setStart] = useState(
@@ -72,6 +78,7 @@ export function GroceryWorkspace({
           </Button>
         </ShoppingEditor>
       </header>
+      <SessionPanel context={context} today={today} />
       <section className="card grocery-controls">
         <form
           onSubmit={(e) => {
@@ -109,15 +116,16 @@ export function GroceryWorkspace({
               />
             </label>
           </div>
-          <Button disabled={pending}>
+          <Button disabled={pending || Boolean(context.session)}>
             <RefreshCw size={14} />{" "}
             {pending ? "Updating…" : "Update from meal plan"}
           </Button>
         </form>
         <p className="fine-print muted">
           Includes uneaten meals in this period. Stock expiring before the
-          period ends is conservatively excluded. Checking an item off does not
-          change pantry stock or log spending.
+          period ends is conservatively excluded. Finish shopping before
+          recalculating. Confirmed purchases update pantry and spending;
+          “Already have it” does neither.
         </p>
       </section>
       {message && (
@@ -171,6 +179,8 @@ export function GroceryWorkspace({
             <ShoppingRow
               key={`${item.id}-${item.updated_at}`}
               item={item}
+              context={context}
+              units={units}
               food={foods.find((f) => f.id === item.food_id)}
               offer={item.food_id ? offers[item.food_id] : undefined}
             />

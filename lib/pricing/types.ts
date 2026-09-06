@@ -6,6 +6,8 @@ export type RetailProduct = {
   package_amount: number;
   package_unit: string;
   package_grams: number | null;
+  package_label?: string | null;
+  is_active?: boolean;
 };
 export type StoreLocation = {
   id: string;

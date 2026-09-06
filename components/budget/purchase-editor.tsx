@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,9 @@ export type EditorContext = {
   stores: { id: string; name: string }[];
   today: string;
   currency: Currency;
+  shoppingFoodIds?: string[];
+  recentFoodIds?: string[];
+  units?: "imperial" | "metric";
 };
 const blankItem = (): PurchaseItem => ({
   food_id: null,
@@ -50,6 +54,8 @@ function PurchaseForm({
   stores,
   today,
   currency: initialCurrency,
+  shoppingFoodIds = [],
+  recentFoodIds = [],
   close,
 }: EditorContext & { purchase?: Purchase; close: () => void }) {
   const [id] = useState(() => purchase?.id || crypto.randomUUID());
@@ -88,6 +94,18 @@ function PurchaseForm({
         );
       }}
     >
+      {!purchase && (
+        <div className="notice">
+          <strong>From My Shopping List</strong>
+          <p>
+            Shopping now? Record items once to update pantry and budget
+            together.
+          </p>
+          <Link className="button" href="/groceries">
+            Open my shopping list →
+          </Link>
+        </div>
+      )}
       <div className="form-grid compact-grid">
         <label className="field">
           Store
@@ -144,6 +162,8 @@ function PurchaseForm({
           index={index}
           foods={foods}
           products={products}
+          shoppingFoodIds={shoppingFoodIds}
+          recentFoodIds={recentFoodIds}
           onChange={(next) =>
             setItems(items.map((i, n) => (n === index ? next : i)))
           }

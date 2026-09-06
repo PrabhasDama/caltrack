@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import type { PurchaseItem } from "@/lib/budget/types";
 import type { CatalogFood } from "@/lib/meal-plan/types";
 import type { RetailProduct } from "@/lib/pricing/types";
@@ -9,6 +10,8 @@ export function PurchaseItemFields({
   products,
   onChange,
   onRemove,
+  shoppingFoodIds = [],
+  recentFoodIds = [],
 }: {
   item: PurchaseItem;
   index: number;
@@ -16,10 +19,43 @@ export function PurchaseItemFields({
   products: RetailProduct[];
   onChange: (item: PurchaseItem) => void;
   onRemove: () => void;
+  shoppingFoodIds?: string[];
+  recentFoodIds?: string[];
 }) {
+  const [scope, setScope] = useState("shopping");
+  const [search, setSearch] = useState("");
+  const ids = scope === "shopping" ? shoppingFoodIds : recentFoodIds;
+  const shownFoods = foods.filter(
+    (f) =>
+      (scope === "other" || ids.includes(f.id) || f.id === item.food_id) &&
+      f.name.toLowerCase().includes(search.toLowerCase()),
+  );
+  const shownProducts = products.filter(
+    (p) =>
+      (p.is_active !== false || p.id === item.retail_product_id) &&
+      shownFoods.some((f) => f.id === p.food_id),
+  );
   return (
     <fieldset className="purchase-item-fields">
       <legend>Item {index + 1}</legend>
+      <label className="field">
+        Find purchase items
+        <select
+          aria-label={`Item ${index + 1} source`}
+          value={scope}
+          onChange={(e) => setScope(e.target.value)}
+        >
+          <option value="shopping">From My Shopping List</option>
+          <option value="recent">Recent / Planned Groceries</option>
+          <option value="other">Add Something Else</option>
+        </select>
+      </label>
+      {scope === "other" && (
+        <label className="field">
+          Search catalog
+          <input value={search} onChange={(e) => setSearch(e.target.value)} />
+        </label>
+      )}
       <label className="field">
         Match item
         <select
@@ -50,17 +86,17 @@ export function PurchaseItemFields({
           }}
         >
           <option value="">Manual / unmatched</option>
-          <optgroup label="Foods">
-            {foods.map((f) => (
-              <option key={f.id} value={`food:${f.id}`}>
-                {f.name}
+          <optgroup label="Demo retail packages">
+            {shownProducts.map((p) => (
+              <option key={p.id} value={`product:${p.id}`}>
+                {p.name}
               </option>
             ))}
           </optgroup>
-          <optgroup label="Demo retail packages">
-            {products.map((p) => (
-              <option key={p.id} value={`product:${p.id}`}>
-                {p.name}
+          <optgroup label="Foods / loose quantities">
+            {shownFoods.map((f) => (
+              <option key={f.id} value={`food:${f.id}`}>
+                {f.name}
               </option>
             ))}
           </optgroup>
@@ -83,9 +119,13 @@ export function PurchaseItemFields({
             aria-label={`Item ${index + 1} quantity`}
             required
             type="number"
-            min="0.001"
+            min={
+              item.unit === "piece" || item.unit === "package" ? "1" : "0.001"
+            }
             max="1000000"
-            step="any"
+            step={
+              item.unit === "piece" || item.unit === "package" ? "1" : "any"
+            }
             value={item.quantity || ""}
             onChange={(e) =>
               onChange({ ...item, quantity: Number(e.target.value) })

@@ -1,7 +1,9 @@
+import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/services/auth";
 import { OnboardingWizard } from "@/components/onboarding/wizard";
 export default async function Onboarding() {
   const { client, profile } = await requireProfile(false);
+  if (profile.onboarding_completed_at) redirect("/preferences");
   const { data: stores, error } = await client
     .from("stores")
     .select("id,name")

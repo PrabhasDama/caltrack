@@ -15,16 +15,19 @@ import { PantryEditor } from "./pantry-editor";
 import { useMutation } from "@/components/dashboard/use-mutation";
 import { removePantry } from "@/app/(app)/pantry/actions";
 import { pantryState, type PantryRecord } from "@/lib/pantry/inventory";
-import { formatGrams } from "@/lib/pantry/units";
+import { formatFoodQuantity, type Measurement } from "@/lib/food/quantities";
+
 import type { CatalogFood } from "@/lib/meal-plan/types";
 function PantryCard({
   item,
   foods,
   today,
+  units = "metric",
 }: {
   item: PantryRecord;
   foods: CatalogFood[];
   today: string;
+  units?: Measurement;
 }) {
   const food = foods.find((f) => f.id === item.food_id);
   const { pending, error, run } = useMutation();
@@ -70,7 +73,9 @@ function PantryCard({
         </Dialog>
       </div>
       <h3>{food?.name || "Ingredient"}</h3>
-      <div className="large-value">{formatGrams(item.quantity_g)}</div>
+      <div className="large-value">
+        {formatFoodQuantity(item.quantity_g, food, units)}
+      </div>
       <p className="muted fine-print">
         {food
           ? `About ${(item.quantity_g / food.serving_g).toFixed(1)} reference servings`
@@ -81,7 +86,12 @@ function PantryCard({
         <p className="fine-print muted">Expires {item.expires_on}</p>
       )}
       <div className="pantry-card-actions">
-        <PantryEditor key={item.updated_at} foods={foods} item={item}>
+        <PantryEditor
+          key={item.updated_at}
+          foods={foods}
+          item={item}
+          units={units}
+        >
           <Button variant="outline">Edit quantity</Button>
         </PantryEditor>
         <button
@@ -112,10 +122,12 @@ export function PantryWorkspace({
   foods,
   pantry,
   today,
+  units = "metric",
 }: {
   foods: CatalogFood[];
   pantry: PantryRecord[];
   today: string;
+  units?: Measurement;
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
@@ -136,7 +148,7 @@ export function PantryWorkspace({
           </h1>
           <p>Your ingredients, ready for the week ahead.</p>
         </div>
-        <PantryEditor foods={foods}>
+        <PantryEditor foods={foods} units={units}>
           <Button>
             <Plus size={15} /> Add ingredient
           </Button>
@@ -174,7 +186,13 @@ export function PantryWorkspace({
       {rows.length ? (
         <div className="pantry-grid">
           {rows.map((item) => (
-            <PantryCard key={item.id} item={item} foods={foods} today={today} />
+            <PantryCard
+              key={item.id}
+              item={item}
+              foods={foods}
+              today={today}
+              units={units}
+            />
           ))}
         </div>
       ) : (
