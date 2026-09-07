@@ -1,7 +1,8 @@
 import "server-only";
 import { z } from "zod";
 import { requireProfile } from "./auth";
-import { getDemoPricing, productSchema } from "./pricing";
+import { productSchema } from "./pricing";
+import { getOptimizationPricing } from "./optimization-pricing";
 import type { ShoppingContext, ShoppingSession } from "@/lib/shopping/types";
 const sessionSchema = z.object({
   id: z.string(),
@@ -33,25 +34,36 @@ const sessionSchema = z.object({
 });
 export async function getShoppingContext(): Promise<ShoppingContext> {
   const { client, user, profile } = await requireProfile();
-  const [sessions, stores, locations, products, pricing] = await Promise.all([
-    client
-      .from("shopping_sessions")
-      .select(
-        "*,receipt:purchases(*),events:shopping_fulfillments(*,line:purchase_items(*))",
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(10),
-    client.from("stores").select("id,name").order("name"),
-    client.from("store_locations").select("*").order("name"),
-    client
-      .from("retail_products")
-      .select("*")
-      .eq("is_active", true)
-      .order("name"),
-    getDemoPricing(),
-  ]);
-  if (sessions.error || stores.error || locations.error || products.error)
+  const [sessions, stores, locations, products, pricing, preferences] =
+    await Promise.all([
+      client
+        .from("shopping_sessions")
+        .select(
+          "*,receipt:purchases(*),events:shopping_fulfillments(*,line:purchase_items(*))",
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      client.from("stores").select("id,name").order("name"),
+      client.from("store_locations").select("*").order("name"),
+      client
+        .from("retail_products")
+        .select("*")
+        .eq("is_active", true)
+        .order("name"),
+      getOptimizationPricing(),
+      client
+        .from("store_preferences")
+        .select("store_id")
+        .eq("user_id", user.id),
+    ]);
+  if (
+    sessions.error ||
+    stores.error ||
+    locations.error ||
+    products.error ||
+    preferences.error
+  )
     throw new Error("Shopping information could not be loaded.");
   const rows: ShoppingSession[] = sessionSchema.array().parse(sessions.data);
   const ps = productSchema.array().parse(products.data);
@@ -75,16 +87,8 @@ export async function getShoppingContext(): Promise<ShoppingContext> {
         }),
       )
       .parse(locations.data),
-    offers: [
-      ...(await pricing.provider.getOffers(
-        ps.flatMap((p) => (p.food_id ? [p.food_id] : [])),
-        "USD",
-      )),
-      ...(await pricing.provider.getOffers(
-        ps.flatMap((p) => (p.food_id ? [p.food_id] : [])),
-        "CAD",
-      )),
-    ],
+    offers: pricing.offers,
+    preferredStores: preferences.data!.map((p) => p.store_id),
     currency: pricing.currency,
   };
 }

@@ -1,6 +1,6 @@
 "use server";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { invalidate } from "@/lib/services/invalidation";
 import { requireProfile } from "@/lib/services/auth";
 import { dateSchema, localDate, addDays } from "@/lib/date";
 import { toKg } from "@/lib/nutrition/units";
@@ -22,7 +22,7 @@ async function context(date: unknown) {
 function done(error: unknown): ActionResult {
   if (error)
     return { error: "Your update could not be saved. Please try again." };
-  revalidatePath("/", "layout");
+  invalidate("tracking");
   return { success: true };
 }
 function failed(error: unknown): ActionResult {
@@ -208,15 +208,13 @@ export async function addMeal(input: unknown) {
     }
     return done(
       (
-        await client
-          .from("daily_meal_logs")
-          .insert({
-            ...fields,
-            ingredients,
-            user_id: user.id,
-            local_date: date,
-            status: "planned",
-          })
+        await client.from("daily_meal_logs").insert({
+          ...fields,
+          ingredients,
+          user_id: user.id,
+          local_date: date,
+          status: "planned",
+        })
       ).error,
     );
   } catch (e) {

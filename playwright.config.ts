@@ -7,7 +7,7 @@ export default defineConfig({
   expect: { timeout: 15000 },
   use: {
     actionTimeout: 15000,
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: process.env.QA_BASE_URL || "http://127.0.0.1:3000",
     headless: true,
     viewport: { width: 1440, height: 1000 },
     launchOptions: {

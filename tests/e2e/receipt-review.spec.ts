@@ -24,16 +24,14 @@ test("receipt review commits once and prep rolls back a failed optimistic change
   );
   expect(item).toBeTruthy();
   await page.goto("/scan/receipt");
-  await page
-    .getByLabel("Choose image")
-    .setInputFiles({
-      name: "receipt.png",
-      mimeType: "image/png",
-      buffer: Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jC9sAAAAASUVORK5CYII=",
-        "base64",
-      ),
-    });
+  await page.getByLabel("Choose image").setInputFiles({
+    name: "receipt.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jC9sAAAAASUVORK5CYII=",
+      "base64",
+    ),
+  });
   await page
     .getByRole("button", { name: "Upload for review", exact: true })
     .click();
@@ -42,6 +40,10 @@ test("receipt review commits once and prep rolls back a failed optimistic change
   ).toBeVisible();
   await page.getByLabel("Store", { exact: true }).fill("QA reviewed groceries");
   await page.getByLabel("Item name", { exact: true }).fill(item.name);
+  // Set the receipt currency explicitly; country defaults need not match a receipt.
+  await page
+    .getByRole("combobox", { name: "Currency", exact: true })
+    .selectOption("USD");
   await page.getByLabel("Price per unit (USD)").fill("5");
   await page.getByLabel("Pantry food").selectOption(item.food_id);
   await page
@@ -118,7 +120,9 @@ test("receipt review commits once and prep rolls back a failed optimistic change
     } else await route.continue();
   });
   await checkbox.click();
-  await expect(page.locator(".prep-session .error-text[role=alert]")).toBeVisible();
+  await expect(
+    page.locator(".prep-session .error-text[role=alert]"),
+  ).toBeVisible();
   await expect(checkbox).toBeChecked();
   await page.unroute("**/prep");
   await checkbox.click();

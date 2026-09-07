@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Clock, ArrowLeftRight, Check } from "lucide-react";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
@@ -79,7 +79,10 @@ export function MealPreview({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<SwapMode>("Recommended");
   const [search, setSearch] = useState("");
-  const candidates = rankSwaps(context, meal, mode, search);
+  const candidates = useMemo(
+    () => (open ? rankSwaps(context, meal, mode, search) : []),
+    [open, context, meal, mode, search],
+  );
   return (
     <article className="plan-meal card">
       <div className="section-heading">
@@ -173,8 +176,9 @@ export function MealPreview({
               ))}
             </div>
             <div className="swap-options">
-              {candidates.map((c) => {
+              {candidates.slice(0, 7).map((c) => {
                 const delta = targetDelta(c.meal.macros, meal.macros);
+                const smart = c.smart;
                 return (
                   <button
                     key={c.template.id}
@@ -200,9 +204,27 @@ export function MealPreview({
                       {Math.round(delta.fiber)}g fiber
                     </span>
                     <small>
+                      Pantry coverage {Math.round(c.pantry.coverage * 100)}% ·{" "}
+                      {mode === "Cheaper"
+                        ? "Reduces package spending for the current plan"
+                        : "Compatible with your food and cooking preferences"}
+                      . Monthly savings are not extrapolated.
+                    </small>
+                    {smart && (
+                      <small>
+                        {smart.weekSavings === null
+                          ? "Weekly package savings unavailable"
+                          : `This plan: ${money(Math.abs(smart.weekSavings), c.estimate.currency)} ${smart.weekSavings >= 0 ? "less" : "more"} in packages with this replacement`}{" "}
+                        · carbs {smart.macros.carbs > 0 ? "+" : ""}
+                        {smart.macros.carbs}g · fat{" "}
+                        {smart.macros.fat > 0 ? "+" : ""}
+                        {smart.macros.fat}g
+                      </small>
+                    )}
+                    <small>
                       {c.estimate.cost === null
                         ? "Cost unavailable"
-                        : `Demo pricing · ${money(c.estimate.cost, c.estimate.currency)} estimated ingredient cost`}{" "}
+                        : `${c.estimate.isDemo ? "Demo pricing" : "Observed prices"} · ${money(c.estimate.cost, c.estimate.currency)} estimated ingredient cost`}{" "}
                       · Use this meal →
                     </small>
                   </button>

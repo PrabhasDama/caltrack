@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { WasteDialog } from "./waste-dialog";
 import { PantryEditor } from "./pantry-editor";
 import { useMutation } from "@/components/dashboard/use-mutation";
 import { removePantry } from "@/app/(app)/pantry/actions";
@@ -86,6 +87,7 @@ function PantryCard({
         <p className="fine-print muted">Expires {item.expires_on}</p>
       )}
       <div className="pantry-card-actions">
+        <WasteDialog item={item} />
         <PantryEditor
           key={item.updated_at}
           foods={foods}
@@ -216,8 +218,7 @@ export function PantryWorkspace({
       )}
       <p className="fine-print muted">
         Completing a meal deducts available, unexpired stock once. Undo restores
-        the amount actually used. Update your grocery list after changing
-        inventory.
+        the amount actually used. Grocery requirements update automatically when inventory changes.
       </p>
     </div>
   );

@@ -1,3 +1,78 @@
+# Phase 9 integration and verification — September 7, 2026
+
+Resumed the previous working tree without restarting Phase 9. Phase 10 remains untouched. This section supersedes the older Phase 9 checkpoint below. Final clean production browser run: all six core scenarios passed, including all five former failures. The added account-switch test initially encountered two correctly labeled desktop logout buttons; its locator was narrowed to Settings. The targeted account-switch rerun PASSED (7.3 seconds). All seven scenarios therefore pass across the final clean run and this targeted rerun. Desktop pantry/swap and mobile Budget receipt screenshots were inspected. Final warm return times: Groceries 62 ms, Plan 78 ms, Budget 109 ms, with zero RSC requests.
+
+Stopped development at the reported 84% five-hour usage reading. Credit balance remained 2476.7306330000; no reset redeemed. Both temporary QA accounts, private uploaded files and records were removed; generated browser artifacts deleted and dedicated QA server stopped. Existing user preview was left running. Phase 9 remains partial for the shopping-cart application limits documented below.
+
+## Five previous browser failures: reproduced individually and resolved
+
+1. Core receipt matching: the test stocked the ingredient fully, then looked for it under the active shopping-list filter. Live replenishment correctly removed the covered requirement. Historical receipt matching now selects Recent / Planned. A subsequent stale assertion compared regenerated meals before asynchronous optimization completed; it now waits for the resulting meal names, without arbitrary timeouts.
+2. Recipe review: the chosen recipe had two authored instructions, while the test required at least three. The test now compares rendered instructions exactly against the saved recipe and still checks visible numbering. Country/measurement restoration runs in finally, including after failures.
+3. Progress/photos/prep: the previous failed recipe test left the account in Canada/metric mode; progress correctly showed kilograms while the test searched for pounds. Restoring preferences fixes the root cause; the full progress/private-photo/prep scenario passed individually.
+4. Receipt review: the same country change made the receipt default to CAD while the test searched for USD. The test explicitly selects its receipt currency using the actual accessible combobox. Confirmation, retry protection, stock updates and prep optimistic rollback passed individually.
+5. Phase 9: earlier tests stopped before creating the receipt the final scenario expected. With successful setup, the original scenario passed. The expanded scenario creates its own shopping receipt and verifies depletion, purchase, Budget reversal, repurchase, consumption, automatic return, Already-have and warm navigation.
+
+## Product fixes and integration completed this run
+
+- Shared request-scoped optimization pricing for Plan and Groceries. Own actual package purchases with known product/location/currency matches replace matching demo references. Selection uses purchase date, with deterministic ties; unknown locations and future observations are excluded. Price history retains provenance. Checkout never treats a private observation as a demo offer; it displays the previous price and asks for the amount actually paid. Discovery also uses the available package/cart data and correct demo labeling.
+- Smart swap ranking now uses package spending across the visible draft, pantry coverage, macro compatibility and existing dietary/cooking constraints. The draft is passed through to swaps; absent meals cannot produce fabricated zero-savings claims. Negative savings display as additional cost. No unsupported monthly extrapolation.
+- Twelve deterministic candidate plans include ordinary and greater-variety candidates, scored with the same objective weights. Fixtures establish at least three distinct selected plans across the six objectives, optimal ranking within the bounded candidate pool for each objective, and reproducibility. Single-day regeneration considers other saved days in the weekly budget horizon. Recent completed templates from the prior 30 days inform repetition.
+- Planner receives new saved meal/status data without silently retaining old pristine state. Locked incoming days remain protected. Swap lists compute only while their dialog is open; unchanged summary inputs use the owner-keyed cache.
+- Budget receipt modal stays mounted through corrections/reversal, retains reversed lines, and is available for manual receipts too. Older inline detail disclosure is explicitly named Item price details. No duplicate receipt records.
+- Pantry shows recent explicit expired/discarded events, known historical cost estimates, actual stock consumed by completed meals and a conservative repeated-waste suggestion. No invented smaller-package savings. Bounded to 500 records per category over the last 30 days; only Pantry requests these additional queries.
+
+## Migrations and security
+
+021–022 were already applied and unchanged. Corrective forward migration 023 was genuinely necessary: explicit one-day/future shopping horizons had been expanded to seven days. It now honors the requested range and reserves pantry stock for earlier planned meals before a future horizon. Expired list periods roll forward. Regression coverage checks exact demand, prior stock allocation and idempotency. 023 applied successfully; no reset/reapplication of older migrations.
+
+All six live rollback suites passed: security, phases_4_6_security, phase65_security, phase78_security, receipt_completion_security, phase9_security. They cover own-row RLS, private storage, atomic stock/spending, retries, reversal, review gates and replenishment. No service/admin credential was added to application runtime.
+
+## Automated checks and performance
+
+150 automated tests in 12 files pass. Typecheck, lint, production build and diff whitespace checks pass. Added actual-price merging, future/unknown-location exclusion, all six representative package cases, missing package weights, travel/store penalties, expired pantry, draft swap accounting, objective selection and future-horizon regressions.
+
+Expanded targeted browser run passed. Local production warm returns: Groceries 71 ms, Plan 64 ms, Budget 93 ms; zero RSC requests on all three returns. These are local observations, not deployment benchmarks. Next 16 documentation states that revalidatePath from a server action can currently refresh all previously visited pages even when specific paths are named. Mutations intentionally refresh affected data; 30-second safe client reuse serves unchanged navigation. Request-scoped data and owner/input-keyed summary caching do not share private page data across users. No Vercel URL/telemetry supplied.
+
+## Remaining limits / Phase 9 completion status
+
+Core workflows and integrations are substantially verified, but Phase 9 is still PARTIAL against every item in the previous checkpoint: there is no persistent saved shopping-cart selection or automatic application of a split cart to checkout. Recommendations show package/store choices; checkout still confirms one product size per requirement and users handle separate store sessions. Multi-size cart recommendations therefore require manual purchasing decisions. Extra-store penalty/max-store controls are local UI choices, not saved profile preferences. Future-plan leftovers beyond the current aggregate horizon are not reserved automatically.
+
+Package search is bounded to selected one/two-product combinations, ten locations and three stores; it is not a global optimum guarantee. Variety candidates can coincide when constraints narrow choices. No live retailer or travel provider is configured. Distances are unknown; injected distance penalties are tested. OCR still needs an external gateway. Actual observations only integrate when product/location/weight are known; unknown-location receipts stay private history. Pantry is aggregate per food, waste records the whole remaining amount, and manual grocery quantities remain user-owned overrides. Full browser tests use a documented ordered disposable-account journey; targeted review scenarios require the core setup.
+
+---
+
+# Phase 9 partial implementation — September 7, 2026
+
+Stopped at the user’s 85% five-hour usage cutoff. Last check: 85% five-hour, 97% weekly; credit balance 2476.7306330000 unchanged. No reset redeemed. Phase 9 is NOT complete or fully browser-verified. Preserve all existing work; do not restart Phase 1–8.
+
+## Implemented this run
+
+- Applied forward migrations 021 live replenishment and 022 waste events to the linked Supabase project. Deferred transaction triggers reconcile pantry, planned meal demand and shopping fulfillment; active generated requirements are unique/idempotent. Purchased/Already-have rows leave the active list while history remains. Later insufficient stock reactivates demand with a new row. Self-only reconciliation RPC also runs when inventory loads to catch date/expiry changes.
+- Budget receipt sheet shows receipt lines, quantities, prices, subtotal/total and existing correction/reversal controls without intentional navigation away from Budget. Unknown tax/discounts are not inferred.
+- Deterministic six-objective planner, shared scoring, dated pantry allocation, expiry/runout, remaining monthly budget and package/cart estimates. Bounded package combinations and store subsets provide single-store, split and fewest-store comparisons, configurable extra-store penalty and missing-price warnings. These are heuristic recommendations, not a proof of global minimum.
+- Meal swaps display whole-plan package cash and macro deltas. Grocery product alternatives show package/leftover differences. Price quality uses sufficiently sampled dated history; demo provenance remains explicit. Plan pricing can use actual private receipt/manual observations matched to known products and locations.
+- Explicit whole-item waste recording, owner-only history/export, idempotency and stock depletion; cost is unavailable without a usable actual purchase reference. No inferred waste from ordinary consumption.
+- Thirty-second client route reuse, targeted mutation invalidation, parallel independent reads, removal of redundant plan refresh, owner-and-input-keyed bounded optimizer cache, logout clearing. No global cache of private page data. Missing travel provider returns unknown distances.
+
+## Verification and failures
+
+136 tests in 12 files pass. Typecheck, lint, production build and diff whitespace checks pass. Live rollback SQL suites passed: security, phases_4_6_security, phase65_security, receipt_completion_security and new phase9_security. Phase 7–8 SQL suite was not rerun this turn.
+
+Final production browser suite: 1 passed, 5 failed. Do NOT describe browser QA as passing. Core test stopped selecting a food absent from the Budget purchase match options (core.spec.ts:352). Phase65 expected at least three recipe steps but the selected recipe had two. Phase78 progress/prep failed; inspect on next run. Receipt review used a hardcoded USD label while account currency was CAD. Phase9 verified depletion/replenishment, optimizer controls and mobile plan width, but failed to find a Budget shopping receipt after preceding receipt-creation scenarios failed. Tests share account state and need isolation/robust fixtures before drawing regression conclusions. Warm return to Plan measured 52 ms with zero Plan RSC requests on local production; this is one observation, not a deployment benchmark. Budget modal mobile QA remains pending.
+
+Temporary QA account and uploaded files were cleaned up at stop; generated test-results removed. Dedicated production QA server stopped; existing user preview left running.
+
+## Next work / known limits
+
+1. Repair browser fixtures and investigate all failures; finish Budget receipt correction/reversal and full pantry → buy → consume → replenish browser verification. Preserve security and existing flows.
+2. Unify Groceries cart pricing with Plan actual private observations: Groceries comparison still uses demo offers. Existing serving-cost discovery estimates also remain demo based.
+3. Smart swap cash deltas are displayed but new scoring does not yet rank all swaps. Full recent-meal history, persistent saved shopping-plan/apply behavior, richer waste history/pattern suggestions and leftover reuse across future plans remain incomplete.
+4. Replenishment uses a minimum seven-day horizon even for a shorter requested list and begins today rather than a future requested start. Manual grocery quantities remain user-owned overrides. Review these semantics and deferred-trigger query cost; inventory reads now add reconciliation work.
+5. Cart search is bounded (up to ten locations, three stores, selected one/two-package combinations); partial/unpriced carts cannot support exact total savings. Travel abstraction has no live provider; do not fabricate distance. Waste action records the whole remaining pantry amount only. Voided purchase lines are currently filtered from Budget views.
+6. Complete remaining Phase 9 acceptance requirements before Phase 10. No external retailer or distance credentials configured, no deployment benchmark performed.
+
+---
+
 # Phase 7–8 completion / QA checkpoint — September 6, 2026
 
 Scope: surgical completion and polish of Phases 7–8. Phase 9/advanced optimization and Phase 10 remain untouched. Do not restart completed work.

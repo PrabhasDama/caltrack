@@ -1,6 +1,6 @@
 "use server";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { invalidate } from "@/lib/services/invalidation";
 import { requireProfile } from "@/lib/services/auth";
 import { getCatalog } from "@/lib/services/catalog";
 import { dateSchema, localDate, addDays } from "@/lib/date";
@@ -18,7 +18,7 @@ export async function refreshGroceries(input: unknown) {
     return {
       error: error.message,
     };
-  revalidatePath("/", "layout");
+  invalidate("inventory");
   return { success: true };
 }
 export async function addShoppingItem(input: unknown) {
@@ -78,7 +78,7 @@ export async function addShoppingItem(input: unknown) {
     source: "manual",
   });
   if (error) return { error: "Your item could not be added." };
-  revalidatePath("/", "layout");
+  invalidate("inventory");
   return { success: true };
 }
 export async function updateShoppingItem(input: unknown) {
@@ -106,7 +106,7 @@ export async function updateShoppingItem(input: unknown) {
     .select("id");
   if (error || !data?.length)
     return { error: "This item changed. Reload and try again." };
-  revalidatePath("/", "layout");
+  invalidate("inventory");
   return { success: true };
 }
 export async function clearPurchased(input: unknown) {
@@ -120,6 +120,6 @@ export async function clearPurchased(input: unknown) {
     .eq("purchased", true)
     .in("id", p.data);
   if (error) return { error: "Checked items could not be cleared." };
-  revalidatePath("/", "layout");
+  invalidate("inventory");
   return { success: true };
 }

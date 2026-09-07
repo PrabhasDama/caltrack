@@ -188,6 +188,42 @@ describe("Postgres ownership and transactions", () => {
       db.query("select public.confirm_reviewed_receipt($1,'{}',false)", [meal]),
     ).rejects.toThrow("Review and confirm");
   });
+  it("records explicit waste once, excluding invented cost, and reconciles stock", async () => {
+    await db.exec(
+      `insert into public.pantry_items(user_id,food_id,quantity_g) values('${alice}','${food}',200)`,
+    );
+    await asUser(alice);
+    const row = (
+      await db.query<{ id: string; updated_at: string }>(
+        "select id,updated_at from public.pantry_items",
+      )
+    ).rows[0];
+    for (let i = 0; i < 2; i++)
+      await db.query("select public.record_food_waste($1,$2,$3,'discarded')", [
+        meal,
+        row.id,
+        row.updated_at,
+      ]);
+    expect(await count("food_waste_events")).toBe(1);
+    expect(
+      (
+        await db.query<{ estimated_cost: number | null }>(
+          "select estimated_cost from public.food_waste_events",
+        )
+      ).rows[0].estimated_cost,
+    ).toBeNull();
+    expect(
+      Number(
+        (
+          await db.query<{ quantity_g: number }>(
+            "select quantity_g from public.pantry_items",
+          )
+        ).rows[0].quantity_g,
+      ),
+    ).toBe(0);
+    await asUser(bob);
+    expect(await count("food_waste_events")).toBe(0);
+  });
   it("allows account deletion to remove completion audit rows", async () => {
     await db.exec(
       `insert into public.daily_meal_logs(id,user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients,status) values('${meal}','${alice}',current_date,'Lunch','Test',100,10,10,1,1,'[]','completed');delete from auth.users where id='${alice}'`,
@@ -534,6 +570,62 @@ describe("saved meal plans", () => {
 });
 
 describe("pantry and grocery integration", () => {
+  it("honors a short future horizon and reserves stock for earlier meals", async () => {
+    await db.exec(`update public.profiles set timezone='UTC' where id='${alice}';
+      insert into public.pantry_items(user_id,food_id,quantity_g) values('${alice}','${food}',200);
+      insert into public.daily_meal_logs(user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients)
+      select '${alice}',current_date+n,'Lunch','Horizon',100,10,10,2,1,'[{"food_id":"${food}","quantity_g":150}]'::jsonb from generate_series(0,2)n;`);
+    await asUser(alice);
+    await db.exec(
+      "select public.refresh_shopping_list(current_date+1,current_date+1);set constraints all immediate;set constraints all deferred;",
+    );
+    const row = (
+      await db.query<{ amount: number; required_g: number; pantry_g: number }>(
+        "select * from public.shopping_list_items where fulfillment='needed'",
+      )
+    ).rows[0];
+    expect(Number(row.required_g)).toBe(150);
+    expect(Number(row.pantry_g)).toBe(50);
+    expect(Number(row.amount)).toBe(100);
+    await db.exec("select public.reconcile_groceries();");
+    expect(await count("shopping_list_items")).toBe(1);
+  });
+  it("automatically replenishes low/depleted stock and never duplicates active requirements", async () => {
+    await db.exec(
+      `insert into public.pantry_items(user_id,food_id,quantity_g) values('${alice}','${food}',100);insert into public.daily_meal_logs(id,user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients) values('${meal}','${alice}',(now() at time zone 'America/Los_Angeles')::date,'Lunch','Test',100,10,10,1,1,'[{"food_id":"${food}","quantity_g":250}]');set constraints all immediate;set constraints all deferred;`,
+    );
+    await asUser(alice);
+    const active = async () =>
+      (
+        await db.query<{ id: string; amount: number; updated_at: string }>(
+          "select id,amount,updated_at from public.shopping_list_items where fulfillment='needed' and source='generated'",
+        )
+      ).rows;
+    expect(Number((await active())[0].amount)).toBe(150);
+    await db.query("select public.reconcile_groceries()");
+    expect(await active()).toHaveLength(1);
+    const first = (await active())[0];
+    await db.query(
+      "select public.mark_shopping_requirement($1,'already_have',$2)",
+      [first.id, first.updated_at],
+    );
+    await db.query("select public.reconcile_groceries()");
+    expect(await active()).toHaveLength(0);
+    await db.exec(
+      "update public.pantry_items set quantity_g=0;set constraints all immediate;set constraints all deferred;",
+    );
+    expect(Number((await active())[0].amount)).toBe(250);
+    await db.exec(
+      "update public.pantry_items set quantity_g=500;set constraints all immediate;set constraints all deferred;",
+    );
+    expect(await active()).toHaveLength(0);
+    await db.exec(
+      "update public.pantry_items set quantity_g=200;set constraints all immediate;set constraints all deferred;",
+    );
+    expect(Number((await active())[0].amount)).toBe(50);
+    await asUser(bob);
+    expect(await count("shopping_list_items")).toBe(0);
+  });
   it("ignores expired stock on completion", async () => {
     await db.exec(
       `insert into public.pantry_items(user_id,food_id,quantity_g,expires_on) values('${alice}','${food}',100,'2026-09-04');insert into public.daily_meal_logs(id,user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients) values('${meal}','${alice}','2026-09-05','Lunch','Test meal',400,30,40,10,5,'[{"food_id":"${food}","quantity_g":50}]')`,
@@ -551,7 +643,7 @@ describe("pantry and grocery integration", () => {
     ).toBe(100);
     expect(await count("pantry_movements")).toBe(0);
   });
-  it("recalculates fulfilled requirements without fabricating pantry while preserving manual items", async () => {
+  it("preserves Already Have It until stock or demand changes, without fabricating pantry", async () => {
     const date = (
       await db.query<{ date: string }>(
         "select ((now() at time zone 'America/Los_Angeles')::date)::text as date",
@@ -579,7 +671,7 @@ describe("pantry and grocery integration", () => {
           "select purchased from public.shopping_list_items where source='generated'",
         )
       ).rows[0].purchased,
-    ).toBe(false);
+    ).toBe(true);
     await asUser(bob);
     expect(await count("shopping_list_items")).toBe(0);
   });

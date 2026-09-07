@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { ReceiptSheet } from "./receipt-sheet";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -30,7 +30,7 @@ export function PurchaseCard({
         <strong>{money(purchase.total, purchase.currency)}</strong>
       </div>
       <details>
-        <summary>{purchase.items.length} items · View receipt</summary>
+        <summary>{purchase.items.length} items · Item price details</summary>
         <ul className="receipt-items">
           {purchase.items.map((item, index) => {
             const food = context.foods.find((f) => f.id === item.food_id);
@@ -57,6 +57,7 @@ export function PurchaseCard({
                 <div>
                   <strong>
                     {item.name}
+                    {item.voided_at ? " · reversed" : ""}
                     {item.price_source === "demo" && (
                       <small className="pill">Demo pricing · estimated</small>
                     )}
@@ -90,11 +91,8 @@ export function PurchaseCard({
         </ul>
         {purchase.notes && <p>{purchase.notes}</p>}
       </details>
-      {purchase.origin !== "manual" ? (
-        <Link className="button" href="/groceries">
-          Shopping receipt · corrections & reversal →
-        </Link>
-      ) : (
+      <ReceiptSheet purchase={purchase} context={context} />
+      {purchase.origin === "manual" && (
         <div className="purchase-actions">
           <PurchaseEditor {...context} purchase={purchase}>
             <Button variant="outline">Edit purchase</Button>

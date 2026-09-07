@@ -30,7 +30,9 @@ if (!key) throw new Error("No administrative key available for isolated QA.");
 const admin = createClient(url, key.api_key || key.key, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
-const file = ".env.qa";
+const file = process.env.QA_ACCOUNT_FILE || ".env.qa";
+if (!/^\.env\.qa(?:-[a-z]+)?$/.test(file))
+  throw new Error("Invalid QA filename");
 if (process.argv.includes("--cleanup")) {
   if (existsSync(file)) {
     const data = JSON.parse(readFileSync(file, "utf8"));

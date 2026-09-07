@@ -1,5 +1,14 @@
 import type { Currency } from "@/lib/pricing/types";
 export type PurchaseItem = {
+  id?: string;
+  quantity_g?: number | null;
+  shopping_fulfillments?: {
+    id: string;
+    state: "purchased" | "voided";
+    added_g: number;
+    item_id: string | null;
+    purchase_item_id: string;
+  }[];
   food_id: string | null;
   retail_product_id: string | null;
   name: string;

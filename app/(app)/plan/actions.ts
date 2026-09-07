@@ -1,5 +1,5 @@
 "use server";
-import { revalidatePath } from "next/cache";
+import { invalidate } from "@/lib/services/invalidation";
 import { requireProfile } from "@/lib/services/auth";
 import { getPlanContext } from "@/lib/services/meal-plan";
 import { savePlanSchema } from "@/lib/validation/plan";
@@ -59,6 +59,6 @@ export async function savePlan(input: unknown) {
           ? error.message
           : "Your plan could not be saved. Reload and retry.",
     };
-  revalidatePath("/", "layout");
+  invalidate("plan");
   return { success: true, revision: Number(data) };
 }

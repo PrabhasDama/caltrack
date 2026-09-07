@@ -1,6 +1,6 @@
 "use server";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { invalidate } from "@/lib/services/invalidation";
 import { requireProfile } from "@/lib/services/auth";
 import { dateSchema } from "@/lib/date";
 const id = z.string().uuid();
@@ -9,7 +9,7 @@ async function rpc(name: string, args: Record<string, unknown>) {
   const { client } = await requireProfile();
   const { error } = await client.rpc(name, args);
   if (error) return { error: error.message };
-  revalidatePath("/", "layout");
+  invalidate("purchase");
   return { success: true };
 }
 export async function startShopping(input: unknown) {

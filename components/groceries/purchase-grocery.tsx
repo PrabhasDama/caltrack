@@ -198,7 +198,7 @@ function PurchaseForm({
           }}
         />
       </label>
-      {offer && (
+      {offer?.is_demo && (
         <Button
           type="button"
           variant="ghost"
@@ -210,6 +210,13 @@ function PurchaseForm({
         >
           Use Demo pricing: {money(offer.price, offer.currency)} / package
         </Button>
+      )}
+      {offer && !offer.is_demo && (
+        <p className="fine-print">
+          Your previous {offer.source} price:{" "}
+          {money(offer.price, offer.currency)} / package, recorded{" "}
+          {offer.observed_at.slice(0, 10)}. Enter the price you pay today.
+        </p>
       )}
       <p className="notice">
         {source === "demo"

@@ -1,4 +1,5 @@
 "use client";
+import { optimizerCache } from "@/lib/optimization/cache";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -88,7 +89,7 @@ export function AppShell({
                 Your personal space <ArrowUpRight size={10} />
               </span>
             </Link>
-            <form action={logout}>
+            <form action={logout} onSubmit={() => optimizerCache.clear()}>
               <button aria-label="Log out" title="Log out">
                 <LogOut size={16} />
               </button>

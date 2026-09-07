@@ -74,7 +74,9 @@ export function PantryDiscovery({
               </strong>{" "}
               · {Math.round(r.meal.macros.protein)}g protein ·{" "}
               {Math.round(r.meal.macros.calories)} kcal ·{" "}
-              {r.meal.cooking_minutes} min
+              {Math.round(r.meal.macros.carbs)}g carbs ·{" "}
+              {Math.round(r.meal.macros.fat)}g fat · {r.meal.cooking_minutes}{" "}
+              min
             </p>
             <p className="fine-print">
               Need to buy:{" "}
@@ -95,7 +97,7 @@ export function PantryDiscovery({
             <p className="fine-print muted">
               {r.estimate.cost === null
                 ? "Additional cost unavailable"
-                : `Demo pricing · ${money(r.estimate.cost, r.estimate.currency)} estimated extra package spend`}
+                : `${r.estimate.isDemo ? "Demo pricing" : "Observed prices"} · ${money(r.estimate.cost, r.estimate.currency)} estimated extra package spend`}
               {r.estimate.expiringCoverage > 0
                 ? ` · Uses ingredients expiring within 3 days`
                 : ""}

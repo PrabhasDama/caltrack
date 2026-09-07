@@ -17,6 +17,17 @@ const purchaseRow = z.object({
   updated_at: z.string(),
   purchase_items: z.array(
     purchaseItemSchema.extend({
+      id: z.string(),
+      quantity_g: z.coerce.number().nullable(),
+      shopping_fulfillments: z.array(
+        z.object({
+          id: z.string(),
+          state: z.enum(["purchased", "voided"]),
+          added_g: z.coerce.number(),
+          item_id: z.string().nullable(),
+          purchase_item_id: z.string(),
+        }),
+      ),
       quantity: z.coerce.number(),
       unit_price: z.coerce.number(),
       price_source: z.string(),
@@ -59,7 +70,9 @@ export async function getBudget(
     client.rpc("purchase_months"),
     client
       .from("purchases")
-      .select("*,purchase_items(*)", { count: "exact" })
+      .select("*,purchase_items(*,shopping_fulfillments(*))", {
+        count: "exact",
+      })
       .eq("user_id", user.id)
       .gte("purchased_on", `${month}-01`)
       .lt("purchased_on", end.toISOString().slice(0, 10))
@@ -153,7 +166,7 @@ export async function getBudget(
       .parse(purchases.data)
       .map(({ purchase_items, ...p }) => ({
         ...p,
-        items: purchase_items.filter((i) => !i.voided_at),
+        items: purchase_items,
       })),
     foods: catalog.foods,
     stores: z

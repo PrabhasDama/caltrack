@@ -1,6 +1,6 @@
 "use server";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { invalidate } from "@/lib/services/invalidation";
 import { requireProfile } from "@/lib/services/auth";
 import { purchaseSchema } from "@/lib/validation/purchases";
 import { purchaseSubtotal } from "@/lib/budget/calculations";
@@ -28,7 +28,7 @@ export async function savePurchase(input: unknown) {
         ? error.message
         : "Your purchase could not be saved. Check its items and retry.",
     };
-  revalidatePath("/", "layout");
+  invalidate("budget");
   return { success: true };
 }
 export async function deletePurchase(input: unknown) {
@@ -46,7 +46,7 @@ export async function deletePurchase(input: unknown) {
     .select("id");
   if (error || !data?.length)
     return { error: "This purchase changed. Reload and try again." };
-  revalidatePath("/", "layout");
+  invalidate("budget");
   return { success: true };
 }
 export async function updateBudget(input: unknown) {
@@ -63,6 +63,6 @@ export async function updateBudget(input: unknown) {
     .update({ monthly_amount: p.data.amount, currency: p.data.currency })
     .eq("user_id", user.id);
   if (error) return { error: "Your budget could not be updated." };
-  revalidatePath("/", "layout");
+  invalidate("budget");
   return { success: true };
 }

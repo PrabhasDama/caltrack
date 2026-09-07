@@ -1,5 +1,5 @@
 import "server-only";
-import { getDemoPricing } from "./pricing";
+import { getOptimizationPricing } from "./optimization-pricing";
 import type { PantryRecord } from "@/lib/pantry/inventory";
 import { requireProfile } from "./auth";
 import { getCatalog } from "./catalog";
@@ -18,44 +18,68 @@ type DayRow = {
 export async function getPlanContext(): Promise<PlanContext> {
   const { client, user, profile } = await requireProfile();
   const today = localDate(profile.timezone);
-  const [catalog, targets, prefs, budget, plan, days, pantry, pricing] =
-    await Promise.all([
-      getCatalog(client),
-      client
-        .from("macro_targets")
-        .select("calories,protein,carbs,fat,fiber")
-        .eq("user_id", user.id)
-        .single(),
-      client
-        .from("user_preferences")
-        .select("*")
-        .eq("user_id", user.id)
-        .single(),
-      client.from("budgets").select("*").eq("user_id", user.id).single(),
-      client
-        .from("meal_plans")
-        .select("revision")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-      client
-        .from("meal_plan_days")
-        .select("id,local_date,meal_plan_entries(position,daily_meal_logs(*))")
-        .eq("user_id", user.id)
-        .gte("local_date", today)
-        .lte("local_date", addDays(today, 13))
-        .order("local_date"),
-      client.from("pantry_items").select("*").eq("user_id", user.id),
-      getDemoPricing(),
-    ]);
+  const [
+    catalog,
+    targets,
+    prefs,
+    budget,
+    plan,
+    days,
+    pantry,
+    pricing,
+    spending,
+    stores,
+    recent,
+  ] = await Promise.all([
+    getCatalog(client),
+    client
+      .from("macro_targets")
+      .select("calories,protein,carbs,fat,fiber")
+      .eq("user_id", user.id)
+      .single(),
+    client.from("user_preferences").select("*").eq("user_id", user.id).single(),
+    client.from("budgets").select("*").eq("user_id", user.id).single(),
+    client
+      .from("meal_plans")
+      .select("revision")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    client
+      .from("meal_plan_days")
+      .select("id,local_date,meal_plan_entries(position,daily_meal_logs(*))")
+      .eq("user_id", user.id)
+      .gte("local_date", today)
+      .lte("local_date", addDays(today, 13))
+      .order("local_date"),
+    client.from("pantry_items").select("*").eq("user_id", user.id),
+    getOptimizationPricing(),
+    client.rpc("purchase_months"),
+    client.from("store_preferences").select("store_id").eq("user_id", user.id),
+    client
+      .from("daily_meal_logs")
+      .select("template_id,local_date")
+      .eq("user_id", user.id)
+      .lt("local_date", today)
+      .gte("local_date", addDays(today, -30))
+      .eq("status", "completed")
+      .order("local_date", { ascending: false })
+      .limit(500),
+  ]);
   if ([targets, prefs, budget, plan, days, pantry].some((r) => r.error))
     throw new Error("Your plan could not be loaded.");
   const p = prefs.data;
-  const offers = await pricing.provider.getOffers(
-    catalog.foods.map((f) => f.id),
-    budget.data.currency,
+  if (spending.error || stores.error || recent.error)
+    throw new Error("Spending could not be loaded for planning.");
+  const optimizationOffers = pricing.offers.filter(
+    (o) => o.currency === budget.data.currency,
   );
   const foodCosts = Object.fromEntries(
-    offers
+    [...optimizationOffers]
+      .sort(
+        (a, b) =>
+          b.price / b.product.package_grams! -
+          a.price / a.product.package_grams!,
+      )
       .filter((o) => o.product.food_id && o.product.package_grams)
       .map((o) => [
         o.product.food_id!,
@@ -100,6 +124,32 @@ export async function getPlanContext(): Promise<PlanContext> {
   }));
   return {
     ...catalog,
+    ownerId: user.id,
+    recentTemplateIds: recent.data!.flatMap((m) =>
+      m.template_id ? [m.template_id] : [],
+    ),
+    optimization: {
+      offers: optimizationOffers,
+      spent: Number(
+        spending.data.find(
+          (m: { month: string; currency: string }) =>
+            m.month === today.slice(0, 7) &&
+            m.currency === budget.data.currency,
+        )?.total || 0,
+      ),
+      shoppingDays: Number(
+        spending.data.find(
+          (m: { month: string; currency: string }) =>
+            m.month === today.slice(0, 7) &&
+            m.currency === budget.data.currency,
+        )?.shopping_days || 0,
+      ),
+      preferredStores: stores.data!.map((s) => s.store_id),
+      distancesKm: {},
+      maxStores: 2,
+      extraStorePenalty: 5,
+      travelCostPerKm: 0,
+    },
     pantry: pantry.data as PantryRecord[],
     foodCosts,
     today,

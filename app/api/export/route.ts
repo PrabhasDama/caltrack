@@ -22,6 +22,7 @@ export async function GET() {
     "extra_foods",
     "pantry_items",
     "pantry_movements",
+    "food_waste_events",
     "meal_plans",
     "meal_plan_days",
     "meal_plan_entries",

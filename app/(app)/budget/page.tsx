@@ -175,7 +175,7 @@ export default async function Budget({
         <div className="purchase-list">
           {d.purchases.map((p) => (
             <PurchaseCard
-              key={`${p.id}-${p.updated_at}`}
+              key={p.id}
               purchase={p}
               context={context}
             />

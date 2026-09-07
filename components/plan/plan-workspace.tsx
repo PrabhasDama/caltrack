@@ -1,6 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -11,6 +10,8 @@ import {
   ShoppingBasket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { optimizePlan, type Objective } from "@/lib/optimization/engine";
+import { OptimizationSummary } from "./optimization-summary";
 import { generatePlan, swapMeal } from "@/lib/meal-plan/generator";
 import { dayMacros, planWarnings } from "@/lib/meal-plan/calculations";
 import { addDays, formatDate } from "@/lib/date";
@@ -19,7 +20,25 @@ import type { PlanContext, PlanDay, MealTemplate } from "@/lib/meal-plan/types";
 import { MacroComparison } from "./macro-comparison";
 import { PantryDiscovery } from "./pantry-discovery";
 import { MealPreview } from "./meal-preview";
-export function PlanWorkspace({ context }: { context: PlanContext }) {
+export function PlanWorkspace({
+  context: baseContext,
+}: {
+  context: PlanContext;
+}) {
+  const [objective, setObjective] = useState<Objective>("Balanced");
+  const [settings, setSettings] = useState({
+    maxStores: 2,
+    extraStorePenalty: 5,
+  });
+  const context = useMemo(
+    () => ({
+      ...baseContext,
+      optimization: baseContext.optimization
+        ? { ...baseContext.optimization, ...settings }
+        : undefined,
+    }),
+    [baseContext, settings],
+  );
   const [days, setDays] = useState(context.days);
   const [dirty, setDirty] = useState<string[]>([]);
   const [selected, setSelected] = useState(context.today);
@@ -29,7 +48,28 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
-  const router = useRouter();
+  const [generating, setGenerating] = useState(false);
+  const incoming = JSON.stringify(baseContext.days);
+  const [previousIncoming, setPreviousIncoming] = useState(incoming);
+  if (previousIncoming !== incoming) {
+    setPreviousIncoming(incoming);
+    if (!dirty.length) {
+      setDays(baseContext.days);
+      setRevision(baseContext.revision);
+    } else {
+      setDays((ds) =>
+        ds.map(
+          (d) =>
+            baseContext.days.find(
+              (n) =>
+                n.date === d.date &&
+                n.meals.some((m) => m.status && m.status !== "planned"),
+            ) || d,
+        ),
+      );
+    }
+  }
+  const draftContext = useMemo(() => ({ ...context, days }), [context, days]);
   const dates = Array.from({ length: 7 }, (_, i) => addDays(context.today, i));
   const day = days.find((d) => d.date === selected);
   const locked = (d: PlanDay) =>
@@ -37,38 +77,53 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
   function generate(single = false) {
     setError("");
     setMessage("");
-    try {
-      const generated = generatePlan(
-        context,
-        single ? selected : context.today,
-        single ? 1 : 7,
-        variation,
-      );
-      const editable = generated.filter(
-        (d) =>
-          !days.some(
-            (existing) => existing.date === d.date && locked(existing),
-          ),
-      );
-      setDays((previous) =>
-        [
-          ...previous.filter((d) => !editable.some((e) => e.date === d.date)),
-          ...editable,
-        ].sort((a, b) => a.date.localeCompare(b.date)),
-      );
-      setDirty((previous) => [
-        ...new Set([...previous, ...editable.map((d) => d.date)]),
-      ]);
-      setVariation((v) => v + 1);
-      if (!editable.length)
-        setError(
-          "Days with completed or skipped meals are protected. Choose a different day.",
+    startTransition(async () => {
+      setGenerating(true);
+      try {
+        const generated = context.optimization
+          ? (
+              await optimizePlan(
+                { ...context, days },
+                single ? selected : context.today,
+                single ? 1 : 7,
+                objective,
+                variation,
+              )
+            ).days
+          : generatePlan(
+              { ...context, days },
+              single ? selected : context.today,
+              single ? 1 : 7,
+              variation,
+            );
+        const editable = generated.filter(
+          (d) =>
+            !days.some(
+              (existing) => existing.date === d.date && locked(existing),
+            ),
         );
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "The plan could not be generated.",
-      );
-    }
+        setDays((previous) =>
+          [
+            ...previous.filter((d) => !editable.some((e) => e.date === d.date)),
+            ...editable,
+          ].sort((a, b) => a.date.localeCompare(b.date)),
+        );
+        setDirty((previous) => [
+          ...new Set([...previous, ...editable.map((d) => d.date)]),
+        ]);
+        setVariation((v) => v + 1);
+        if (!editable.length)
+          setError(
+            "Days with completed or skipped meals are protected. Choose a different day.",
+          );
+      } catch (e) {
+        setError(
+          e instanceof Error ? e.message : "The plan could not be generated.",
+        );
+      } finally {
+        setGenerating(false);
+      }
+    });
   }
   function replace(index: number, t: MealTemplate) {
     if (!day) return;
@@ -92,9 +147,8 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
         setRevision(result.revision!);
         setDirty([]);
         setMessage(
-          "Plan saved. Your meals are ready on Today and your grocery requirements can now be updated.",
+          "Plan saved. Your meals are ready on Today and your grocery requirements are updated.",
         );
-        router.refresh();
       } catch {
         setError("Your plan could not be saved. Please reload and try again.");
       }
@@ -114,15 +168,24 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
           Preferences <ArrowUpRight size={14} />
         </Link>
       </header>
+      <OptimizationSummary
+        context={context}
+        days={days}
+        objective={objective}
+        onObjective={setObjective}
+        onSettings={(p) => setSettings((s) => ({ ...s, ...p }))}
+      />
       <div className="purchase-actions">
-        <Link href="/prep" className="button">Meal prep →</Link>
+        <Link href="/prep" className="button">
+          Meal prep →
+        </Link>
         <Button variant="outline" onClick={() => setDiscovery((v) => !v)}>
           {discovery ? "Hide pantry ideas" : "Cook From My Pantry"}
         </Button>
       </div>
       {discovery && (
         <PantryDiscovery
-          context={context}
+          context={{ ...context, today: selected }}
           locked={Boolean(day && locked(day)) || pending}
           onChoose={(t, slot) => {
             try {
@@ -171,10 +234,15 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
             disabled={pending}
           >
             <Sparkles size={15} />{" "}
-            {days.length ? "Generate new week" : "Generate week"}
+            {generating
+              ? "Comparing plans…"
+              : days.length
+                ? "Generate new week"
+                : "Generate week"}
           </Button>
           <Button onClick={save} disabled={pending || !dirty.length}>
-            <Save size={15} /> {pending ? "Saving…" : "Save plan"}
+            <Save size={15} />{" "}
+            {pending && !generating ? "Saving…" : "Save plan"}
           </Button>
         </div>
       </section>
@@ -259,7 +327,7 @@ export function PlanWorkspace({ context }: { context: PlanContext }) {
               <MealPreview
                 key={`${meal.key}-${meal.template_id}`}
                 meal={meal}
-                context={context}
+                context={draftContext}
                 locked={locked(day) || pending}
                 onSwap={(t) => replace(i, t)}
               />

@@ -205,3 +205,12 @@ Measured authenticated full-page responses against the local development server 
 | /prep | 441 | 439 |
 
 Changes: React request-scoped memoization deduplicates profile/auth/catalog/pricing reads without cross-user persistence. Progress now requests its own ten datasets in parallel instead of first loading Today’s twelve queries. Mutations use their server revalidation response instead of an additional router refresh. Meal/prep checkmarks update optimistically and reconcile or roll back on failure; save states are immediate. An app-level loading boundary supports dynamic navigation with existing Next links. A three-sample local run cannot establish deployed latency or cold-start causes. Daily checklist celebrations persist once per user/date; vibration is feature-detected and reduced-motion preferences are honored.
+
+
+## Phase 9 status
+
+Core replenishment, Budget receipt correction/reversal, deterministic objective scoring and shared private observed pricing are integrated. See CHECKPOINT.md for exact verification results and remaining limits. Migrations 021–023 are applied; 023 corrects explicit shopping horizons. No live retailer or travel provider is configured.
+
+Plan and Groceries use the same request-scoped price inputs. Actual package observations require known product/location/currency; unknown data never becomes an invented price or distance. The twelve-candidate planner, bounded package/store search and draft-aware swaps provide estimates, not guaranteed minima. Demo inputs stay labeled. Saved split-cart application and multi-product checkout remain partial.
+
+For full browser QA, create the normal disposable account and a second untouched account using `QA_ACCOUNT_FILE=.env.qa-second node scripts/qa-account.mjs`, then run the ordered suite against the local production preview. Cleanup both with the same respective environment setting and `--cleanup`. No email is sent. Both files are ignored and must be deleted through cleanup after QA. Private page reuse lasts 30 seconds, auth/mutations invalidate views, and optimizer summary keys include owner and all inputs.

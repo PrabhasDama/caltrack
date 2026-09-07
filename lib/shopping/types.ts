@@ -2,7 +2,6 @@ import type {
   Currency,
   RetailProduct,
   StoreLocation,
-  StoreOffer,
 } from "@/lib/pricing/types";
 export type ShoppingEvent = {
   id: string;
@@ -38,6 +37,7 @@ export type ShoppingContext = {
   stores: { id: string; name: string }[];
   locations: StoreLocation[];
   products: RetailProduct[];
-  offers: StoreOffer[];
+  offers: import("@/lib/optimization/engine").Offer[];
+  preferredStores?: string[];
   currency: Currency;
 };

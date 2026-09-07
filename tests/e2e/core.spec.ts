@@ -286,8 +286,9 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
   expect(
     Number(
       stocked.shopping_list_items.find(
-        (i: { food_id: string }) => i.food_id === ingredient.food_id,
-      ).amount,
+        (i: { food_id: string; fulfillment: string }) =>
+          i.food_id === ingredient.food_id && i.fulfillment === "needed",
+      )?.amount || 0,
     ),
   ).toBeCloseTo(Math.max(0, beforeAmount - 2500), 2);
   await page.screenshot({
@@ -347,6 +348,8 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
     page.getByLabel("Match item 1").locator("optgroup").first(),
   ).toHaveAttribute("label", "Demo retail packages");
   await page.getByLabel("Purchase store").selectOption({ label: "Costco" });
+  // Stocked food correctly leaves the live list; historical receipts use recent meals.
+  await page.getByLabel("Item 1 source").selectOption("recent");
   await page
     .getByLabel("Match item 1")
     .selectOption(`food:${ingredient.food_id}`);
@@ -410,9 +413,7 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
   await page
     .getByRole("button", { name: "Regenerate day", exact: true })
     .click();
-  expect(await page.locator(".plan-meal h3").allTextContents()).not.toEqual(
-    previousNames,
-  );
+  await expect(page.locator(".plan-meal h3")).not.toHaveText(previousNames);
   await page.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Save plan", exact: true }),
@@ -472,7 +473,7 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
     .getByRole("button", { name: "Confirm purchase", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(row).toContainText("Purchased · pantry and budget updated");
+  await expect(row).toHaveCount(0);
   const bought = await (await page.request.get("/api/export")).json();
   const event = bought.shopping_fulfillments.find(
     (e: { item_id: string; state: string }) =>
@@ -540,12 +541,21 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
     already.shopping_list_items.find((i: { id: string }) => i.id === have.id)
       .fulfillment,
   ).toBe("already_have");
-  await row.getByRole("button", { name: "Correct price", exact: true }).click();
+  await page.goto("/budget");
+  await page
+    .getByRole("button", { name: "Shopping receipt · view and correct" })
+    .click();
+  await expect(page).toHaveURL(/\/budget/);
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Correct price", exact: true })
+    .click();
   await page.getByLabel("Price per package", { exact: true }).fill("4.50");
   await page
     .getByRole("button", { name: "Save corrected price", exact: true })
     .click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.goto("/groceries");
   await page
     .getByRole("button", { name: "Finish shopping", exact: true })
     .click();

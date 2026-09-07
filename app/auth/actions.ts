@@ -1,4 +1,5 @@
 "use server";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { appUrl, isConfigured } from "@/lib/supabase/config";
@@ -76,11 +77,13 @@ export async function authAction(
       error: "We couldn’t reach the account service. Please try again.",
     };
   }
+  revalidatePath("/", "layout");
   redirect("/dashboard");
 }
 export async function logout() {
   const client = await createClient();
   const { error } = await client.auth.signOut();
   if (error) throw new Error("Could not log out. Please retry.");
+  revalidatePath("/", "layout");
   redirect("/login");
 }

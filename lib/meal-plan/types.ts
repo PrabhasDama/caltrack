@@ -66,6 +66,9 @@ export type PlanPreferences = {
   currency: "USD" | "CAD";
 };
 export type PlanContext = {
+  ownerId?: string;
+  recentTemplateIds?: string[];
+  optimization?: import("@/lib/optimization/engine").OptimizationData;
   foods: CatalogFood[];
   templates: MealTemplate[];
   targets: Macros;

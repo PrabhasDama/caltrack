@@ -3770,3 +3770,10 @@ button:disabled {
 @keyframes content-arrive { from{opacity:.5;transform:translateY(4px)} to{opacity:1;transform:none} }
 @media (prefers-reduced-motion:no-preference) { .onboarding-step,.daily-celebration,details[open] > :not(summary) { animation:content-arrive 160ms ease-out; } }
 @media (prefers-reduced-motion:reduce) { .daily-celebration i { display:none; animation:none; } }
+
+.optimizer-cart { padding:16px 0;border-bottom:1px solid var(--border); }
+.optimizer-line { margin:12px 0;overflow-wrap:anywhere; }
+.optimizer-cart summary { line-height:1.6;cursor:pointer; }
+.optimization-summary .budget-metrics { gap:16px; }
+.optimization-summary .budget-metrics strong { font-size:1.6rem; }
+.optimizer-carts { min-width:0; }

@@ -1,6 +1,6 @@
 "use server";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { invalidate } from "@/lib/services/invalidation";
 import { requireProfile } from "@/lib/services/auth";
 import { getCatalog } from "@/lib/services/catalog";
 import { pantrySchema } from "@/lib/validation/inventory";
@@ -47,7 +47,7 @@ export async function savePantry(input: unknown) {
           ? "This ingredient is already in your pantry. Edit its quantity instead."
           : "The pantry changed or could not be saved. Reload before trying again.",
     };
-  revalidatePath("/", "layout");
+  invalidate("inventory");
   return { success: true };
 }
 export async function removePantry(input: unknown) {
@@ -71,6 +71,28 @@ export async function removePantry(input: unknown) {
     .select("id");
   if (error || !data?.length)
     return { error: "This pantry item changed. Reload and try again." };
-  revalidatePath("/", "layout");
+  invalidate("inventory");
+  return { success: true };
+}
+
+export async function recordWaste(input: unknown) {
+  const p = z
+    .object({
+      id: z.string().uuid(),
+      pantry: z.string().uuid(),
+      expected: z.string(),
+      reason: z.enum(["expired", "discarded"]),
+    })
+    .safeParse(input);
+  if (!p.success) return { error: "Review the waste entry." };
+  const { client } = await requireProfile();
+  const { error } = await client.rpc("record_food_waste", {
+    p_id: p.data.id,
+    p_pantry: p.data.pantry,
+    p_expected: p.data.expected,
+    p_reason: p.data.reason,
+  });
+  if (error) return { error: error.message };
+  invalidate("inventory");
   return { success: true };
 }

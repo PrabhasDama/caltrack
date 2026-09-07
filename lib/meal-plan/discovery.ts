@@ -1,6 +1,7 @@
 import type { PlanContext, PlannedMeal } from "./types";
 import { allowedTemplates } from "./restrictions";
 import { scaleTemplate, targetLoss } from "./generator";
+import { compareCarts, smartSwapDelta } from "@/lib/optimization/engine";
 import { addDays } from "@/lib/date";
 export type FoodCost = {
   package_g: number;
@@ -18,7 +19,8 @@ export function estimateMeal(
     known = true,
     total = 0,
     covered = 0,
-    expiring = 0;
+    expiring = 0,
+    isDemo = false;
   const missing: { food_id: string; name: string; grams: number }[] = [];
   for (const i of meal.ingredients) {
     const stock = context.pantry?.find((p) => p.food_id === i.food_id);
@@ -40,18 +42,32 @@ export function estimateMeal(
       missing.push({ food_id: i.food_id, name: i.name, grams: need });
       const price = context.foodCosts?.[i.food_id];
       if (!price) known = false;
-      else
+      else {
+        isDemo ||= price.is_demo;
         cost += pantry
           ? Math.ceil(need / price.package_g) * price.price
           : (need / price.package_g) * price.price;
+      }
     }
+  }
+  if (pantry && context.optimization) {
+    const cart = compareCarts(
+      missing,
+      context.optimization,
+      context.preferences.currency,
+    ).bestSplit;
+    known = cart.total !== null;
+    cost = cart.subtotal;
+    isDemo = cart.lines.some((l) =>
+      l.packages.some((p) => p.offer.source === "demo"),
+    );
   }
   return {
     coverage: total ? covered / total : 0,
     expiringCoverage: total ? expiring / total : 0,
     missing,
     cost: known ? Math.round(cost * 100) / 100 : null,
-    isDemo: true,
+    isDemo,
     currency: context.preferences.currency,
   };
 }
@@ -91,7 +107,16 @@ export function rankSwaps(
         current.key,
         context.units,
       );
-      return { template, meal, estimate: estimateMeal(meal, context) };
+      const smart = context.optimization
+        ? smartSwapDelta(current, meal, context.days, context)
+        : null;
+      return {
+        template,
+        meal,
+        estimate: estimateMeal(meal, context),
+        smart,
+        pantry: estimateMeal(meal, context, true),
+      };
     });
   if (mode === "Higher Protein")
     candidates = candidates.filter(
@@ -102,11 +127,12 @@ export function rankSwaps(
       (c) => c.meal.macros.calories < current.macros.calories,
     );
   if (mode === "Cheaper")
-    candidates = candidates.filter(
-      (c) =>
-        originalCost !== null &&
-        c.estimate.cost !== null &&
-        c.estimate.cost < originalCost,
+    candidates = candidates.filter((c) =>
+      context.optimization
+        ? c.smart?.weekSavings !== null && (c.smart?.weekSavings || 0) > 0
+        : originalCost !== null &&
+          c.estimate.cost !== null &&
+          c.estimate.cost < originalCost,
     );
   return candidates.sort((a, b) => {
     const delta =
@@ -117,11 +143,18 @@ export function rankSwaps(
           : mode === "Quick Prep"
             ? a.meal.cooking_minutes - b.meal.cooking_minutes
             : mode === "Cheaper"
-              ? (a.estimate.cost ?? Infinity) - (b.estimate.cost ?? Infinity)
+              ? context.optimization
+                ? (b.smart?.weekSavings ?? -Infinity) -
+                  (a.smart?.weekSavings ?? -Infinity)
+                : (a.estimate.cost ?? Infinity) - (b.estimate.cost ?? Infinity)
               : mode === "Browse All"
                 ? a.template.name.localeCompare(b.template.name)
-                : targetLoss(a.meal.macros, current.macros) -
-                  targetLoss(b.meal.macros, current.macros);
+                : targetLoss(a.meal.macros, current.macros) * 3 -
+                  a.pantry.coverage -
+                  (a.smart?.weekSavings || 0) / 10 -
+                  (targetLoss(b.meal.macros, current.macros) * 3 -
+                    b.pantry.coverage -
+                    (b.smart?.weekSavings || 0) / 10);
     return delta || a.template.slug.localeCompare(b.template.slug);
   });
 }
@@ -173,6 +206,10 @@ export function rankPantryMeals(
       delta ||
       a.estimate.missing.length - b.estimate.missing.length ||
       a.fit - b.fit ||
+      (context.recentTemplateIds?.filter((id) => id === a.template.id).length ||
+        0) -
+        (context.recentTemplateIds?.filter((id) => id === b.template.id)
+          .length || 0) ||
       a.meal.cooking_minutes - b.meal.cooking_minutes ||
       a.template.slug.localeCompare(b.template.slug)
     );

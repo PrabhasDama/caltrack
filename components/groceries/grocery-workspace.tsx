@@ -1,20 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { CartComparison } from "./cart-comparison";
 import Link from "next/link";
-import {
-  Plus,
-  RefreshCw,
-  ShoppingBasket,
-  ArrowUpRight,
-  Check,
-} from "lucide-react";
+import { Plus, RefreshCw, ShoppingBasket, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useMutation } from "@/components/dashboard/use-mutation";
-import {
-  refreshGroceries,
-  clearPurchased,
-} from "@/app/(app)/groceries/actions";
+import { refreshGroceries } from "@/app/(app)/groceries/actions";
 import { addDays } from "@/lib/date";
 import type { CatalogFood } from "@/lib/meal-plan/types";
 import type { ShoppingItem } from "@/lib/groceries/requirements";
@@ -56,12 +47,17 @@ export function GroceryWorkspace({
       : addDays(today, 6),
   );
   const [message, setMessage] = useState("");
-  const [confirm, setConfirm] = useState(false);
-  const items = [...(shopping?.items || [])].sort(
-    (a, b) =>
-      Number(a.purchased) - Number(b.purchased) || a.name.localeCompare(b.name),
+  const items = useMemo(
+    () =>
+      [...(shopping?.items || [])]
+        .filter(
+          (i) =>
+            (i.fulfillment || (i.purchased ? "already_have" : "needed")) ===
+              "needed" && i.amount > 0,
+        )
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [shopping],
   );
-  const checked = items.filter((i) => i.purchased);
   return (
     <div className="secondary-page">
       <header className="dashboard-heading">
@@ -78,6 +74,12 @@ export function GroceryWorkspace({
           </Button>
         </ShoppingEditor>
       </header>
+      <CartComparison
+        items={items}
+        context={context}
+        foods={foods}
+        today={today}
+      />
       <SessionPanel context={context} today={today} />
       <section className="card grocery-controls">
         <form
@@ -122,10 +124,9 @@ export function GroceryWorkspace({
           </Button>
         </form>
         <p className="fine-print muted">
-          Includes uneaten meals in this period. Stock expiring before the
-          period ends is conservatively excluded. Finish shopping before
-          recalculating. Confirmed purchases update pantry and spending;
-          “Already have it” does neither.
+          Updates automatically as meals and pantry change. Stock is counted
+          only for meals before its expiry. Confirmed purchases update pantry
+          and spending; “Already have it” does neither.
         </p>
       </section>
       {message && (
@@ -142,36 +143,10 @@ export function GroceryWorkspace({
         <div>
           <h2>Your basket</h2>
           <p className="muted">
-            {items.filter((i) => i.amount > 0 && !i.purchased).length} to buy ·{" "}
-            {checked.length} checked ·{" "}
-            {items.filter((i) => i.amount === 0).length} stocked
+            {items.length} active requirements · purchased items stay in receipt
+            history
           </p>
         </div>
-        {checked.length > 0 && (
-          <Dialog open={confirm} onOpenChange={setConfirm}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Check size={14} /> Clear checked
-              </Button>
-            </DialogTrigger>
-            <DialogContent
-              title={`Clear ${checked.length} checked items?`}
-              description="Only the currently checked items will be removed. Other items and your pantry stay as they are."
-            >
-              <Button
-                disabled={pending}
-                onClick={() =>
-                  run(
-                    () => clearPurchased(checked.map((i) => i.id)),
-                    () => setConfirm(false),
-                  )
-                }
-              >
-                Clear checked items
-              </Button>
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
       {items.length ? (
         <div className="shopping-list card">
@@ -214,8 +189,8 @@ export function GroceryWorkspace({
       {shopping && (
         <p className="fine-print muted">
           List period: {shopping.start_date} through {shopping.end_date}.
-          Recalculate after changing meals or pantry quantities. Manual items
-          are preserved; generated amount edits are recalculated.
+          Purchased items leave this active list and return when upcoming demand
+          exceeds stock. Manual items are preserved.
         </p>
       )}
     </div>
