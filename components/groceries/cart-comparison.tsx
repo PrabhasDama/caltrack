@@ -1,4 +1,8 @@
 "use client";
+import { useMutation } from "@/components/dashboard/use-mutation";
+import { applySplit } from "@/app/(app)/groceries/split-actions";
+import { splitProposal } from "@/lib/shopping/splits";
+import { Button } from "@/components/ui/button";
 import { useMemo, useState } from "react";
 import { compareCarts } from "@/lib/optimization/engine";
 import { CartView } from "@/components/plan/optimization-summary";
@@ -11,12 +15,15 @@ export function CartComparison({
   context,
   foods,
   today,
+  onApplied,
 }: {
   items: ShoppingItem[];
   context: ShoppingContext;
   foods: CatalogFood[];
   today: string;
+  onApplied?: () => void;
 }) {
+  const { pending, error, run } = useMutation();
   const [maximum, setMaximum] = useState(2),
     [penalty, setPenalty] = useState(5);
   const result = useMemo(
@@ -33,11 +40,7 @@ export function CartComparison({
           offers: context.offers,
           spent: 0,
           shoppingDays: 0,
-          preferredStores: context.session?.location_id
-            ? context.locations
-                .filter((l) => l.id === context.session!.location_id)
-                .map((l) => l.store_id)
-            : context.preferredStores || [],
+          preferredStores: context.preferredStores || [],
           distancesKm: {},
           maxStores: maximum,
           extraStorePenalty: penalty,
@@ -107,6 +110,38 @@ export function CartComparison({
         context={display}
       />
       <CartView name="Best Split" cart={result.bestSplit} context={display} />
+      <Button
+        disabled={
+          pending ||
+          Boolean(context.session) ||
+          Boolean(unconverted.length) ||
+          result.bestSplit.total === null ||
+          !result.bestSplit.lines.length
+        }
+        onClick={() =>
+          run(
+            () =>
+              applySplit({
+                maximum,
+                penalty,
+                lines: splitProposal(result.bestSplit, items),
+              }),
+            onApplied,
+          )
+        }
+      >
+        {pending ? "Applying…" : "Use This Plan"}
+      </Button>
+      <p className="fine-print">
+        Recommendation not yet applied. Applying saves store and package
+        assignments; spending and pantry change only after you confirm
+        purchases. A newer plan replaces your current active split.
+      </p>
+      {error && (
+        <p className="error-text" role="alert">
+          {error}
+        </p>
+      )}
       <CartView name="Fewest stores" cart={result.fewest} context={display} />
       {!unconverted.length && result.savings !== null && result.savings > 0 && (
         <p>

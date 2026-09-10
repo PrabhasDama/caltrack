@@ -1,3 +1,41 @@
+# PHASE 9 COMPLETE — saved split-store lifecycle — September 7, 2026
+
+Completed only the remaining Best Split save/apply gap from the current repository. This section supersedes earlier partial statuses below. All final checks passed. Phase 10 has not been started; STOP here.
+
+## Implementation
+
+- Use This Plan persists structured `split_plans` and `split_assignments`: original grocery identity and need, allocated grams, selected store/location/product, package count/weight, expected unit price, price reference/source/date, total, comparison baseline, maximum stores, penalty, engine version and lifecycle status. Original snapshots survive unavailable offers and removed requirements. Private export includes both tables.
+- Canonical owner-scoped fingerprints and an owner transaction lock make repeated/concurrent application idempotent. Applying makes no purchase, stock or spending changes. A new recommendation explicitly replaces the previous active plan; abandonment is supported. Failed stale application rolls back without replacing the existing plan.
+- Store-grouped saved cards expose applied, partially shopped, completed and historical states, quantities, provenance, expected subtotals/total and supported comparison savings. Stable location IDs separate stores even when names coincide. Desktop and mobile retain the existing design.
+- Checkout uses the existing shopping-session, receipt, fulfillment and pantry ledger. Each store can be shopped and finished independently. Actual entered prices determine receipts and budget; original expected prices remain intact. Multiple packages/sizes can fulfill one requirement through separate assignments. Request/assignment uniqueness prevents duplicate stock, spending and history.
+- Deferred reconciliation recognizes purchases, external purchases, Already-have, changed quantities and removed/covered needs. Stale quantities require review; the saved plan never recreates demand. Receipt reversal can reopen the latest relevant assignment. New depletion still uses existing idempotent replenishment. Unavailable products/offers allow matching alternatives or manual actual weight/price without optimizer recomputation.
+- Applied-plan reopening reads persisted assignments. New comparison and Apply explicitly evaluate the cart optimizer; unrelated navigation and shopping returns do not. Targeted route invalidation preserves existing navigation reuse.
+- Necessary pricing integration: own actual package observations at known product/location/currency combinations can supply an option even when that location has no demo offer. Unknown locations and future observations remain excluded. No retailer data was fabricated or changed for browser QA.
+
+Main files: `lib/shopping/splits.ts`, `app/(app)/groceries/split-actions.ts`, `components/groceries/split-plan-panel.tsx`, existing cart/workspace/purchase components, shopping/pricing services, private export and small responsive styles. README documents the workflow and three-account browser setup.
+
+## Database and security
+
+Forward migration `202609070024_split_plans.sql` applied successfully. Local/remote migration histories match through 024; existing migrations were not reset or reapplied. New tables have owner-only RLS reads and no authenticated direct writes. Public self-scoped RPCs validate ownership, current state, quantities, price references and store/session identity. Internal transaction/reconciliation functions and all anonymous split actions are inaccessible. The fulfillment relationship has a composite owner foreign key.
+
+All **seven live rollback security suites PASS**: `security`, `phases_4_6_security`, `phase65_security`, `phase78_security`, `receipt_completion_security`, `phase9_security`, and new `split_plans_security`. New live assertions cover repeated apply, store separation, wrong-store denial, actual-price corrections, exact stock/spending, cross-user read/apply/abandon/start/purchase denial, direct-write denial, RLS and private/anonymous privileges. All SQL fixtures rolled back. No service credential was added to application runtime.
+
+## Final verification
+
+- **165 automated tests across 12 files PASS** (previous 150 preserved; 14 split database cases and one actual-price integration case added). Focused cases include every requested A–P lifecycle area, same-food multi-package checkout, fallback, replacement, rollback and reversal.
+- TypeScript, lint, production build and diff whitespace checks PASS.
+- **All eight browser scenarios PASS in one clean final production run (4.3 minutes)**. Existing core/preferences/progress/photos/label/receipt/replenishment/cache journeys remain passing. New dedicated split-account scenario passes save → refresh, three concurrent repeat applications without duplicates, Costco purchase/finish with Walmart untouched, later Walmart purchase/finish on mobile, actual prices vs saved expectations, exact stock/spending, stale quantity review and owner isolation. Initial targeted test setup omitted the required preferred stores; corrected the fixture, then both targeted and clean full runs passed without weakening product assertions.
+- Desktop stale-plan and 390px mobile completed-plan screenshots inspected: readable grouping, states, quantities and totals; no horizontal overflow. Browser page-error assertions pass. Dedicated server logged three closed-stream messages during navigation/teardown, with no failed browser requests asserted by the suite.
+- Final measured warm returns: Groceries 73 ms, Plan 71 ms, Budget 58 ms; zero new RSC requests. Local production measurements only, not deployment benchmarks.
+
+## Remaining practical limits
+
+No remaining blocker in the requested split lifecycle. One store session is open at a time; finish it before starting another. Cart search remains bounded to existing candidate/package/store limits, not a global optimum guarantee. No live retailer, travel or OCR provider is configured. Expected prices exclude unrecorded tax/travel and retain explicit demo labels. Unknown-location purchases remain private history. Prior-plan summaries show the latest ten plans; export retains all rows. Existing aggregate-pantry and manual-quantity semantics remain unchanged.
+
+Cleanup/status: dedicated QA preview stopped; user preview untouched. All three disposable QA accounts, their private uploads and records, credential files and generated browser artifacts were removed. Final reported five-hour usage: **79%**, below the user's 85% cutoff. Credit balance remains **2476.7306330000**; no paid credits consumed or reset redeemed.
+
+---
+
 # Phase 9 integration and verification — September 7, 2026
 
 Resumed the previous working tree without restarting Phase 9. Phase 10 remains untouched. This section supersedes the older Phase 9 checkpoint below. Final clean production browser run: all six core scenarios passed, including all five former failures. The added account-switch test initially encountered two correctly labeled desktop logout buttons; its locator was narrowed to Settings. The targeted account-switch rerun PASSED (7.3 seconds). All seven scenarios therefore pass across the final clean run and this targeted rerun. Desktop pantry/swap and mobile Budget receipt screenshots were inspected. Final warm return times: Groceries 62 ms, Plan 78 ms, Budget 109 ms, with zero RSC requests.

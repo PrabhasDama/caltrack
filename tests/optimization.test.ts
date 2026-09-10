@@ -281,13 +281,11 @@ actualContext.optimization = {
     offer(`b-${f.id}`, f.id, "b", i % 2 ? 2 : 8, 500),
   ]),
 };
-actualContext.pantry = actualContext.foods
-  .slice(0, 10)
-  .map((f) => ({
-    food_id: f.id,
-    quantity_g: 3000,
-    expires_on: "2026-09-10",
-  })) as PlanContext["pantry"];
+actualContext.pantry = actualContext.foods.slice(0, 10).map((f) => ({
+  food_id: f.id,
+  quantity_g: 3000,
+  expires_on: "2026-09-10",
+})) as PlanContext["pantry"];
 describe("Phase 9 integration regressions", () => {
   it("uses the latest actual purchase date, preserves source/history, and rejects unknown locations and future dates", () => {
     const ref = offers[0];
@@ -443,4 +441,33 @@ describe("Phase 9 integration regressions", () => {
       swaps.map((s) => s.smart!.weekSavings).sort((a, b) => b! - a!),
     );
   });
+});
+
+it("includes known actual product/location prices without requiring a demo offer at that store", () => {
+  const original = offers[0];
+  const location = { ...original.location, id: "costco", store_id: "costco" };
+  const observed = {
+    id: "private-costco-price",
+    retail_product_id: original.product.id,
+    unit_price: 1,
+    created_at: "2026-09-07",
+    product: original.product,
+    purchase: {
+      currency: "USD",
+      store_location_id: location.id,
+      purchased_on: "2026-09-07",
+      origin: "shopping",
+      location,
+    },
+  };
+  const merged = mergeObservedPrices(offers, [observed], context.today);
+  expect(merged.find((o) => o.location.id === "costco")?.price).toBe(1);
+  expect(merged.find((o) => o.location.id === "costco")?.source).toBe("manual");
+  expect(
+    mergeObservedPrices(
+      offers,
+      [{ ...observed, purchase: { ...observed.purchase, location: null } }],
+      context.today,
+    ),
+  ).toHaveLength(offers.length);
 });

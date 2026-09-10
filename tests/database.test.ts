@@ -1038,3 +1038,385 @@ describe("independent preference edits", () => {
     ).rejects.toThrow("Use Preferences");
   });
 });
+
+describe("saved split-store lifecycle", () => {
+  const f2 = "55555555-5555-4555-8555-555555555555",
+    p1 = "66666666-6666-4666-8666-666666666666",
+    p2 = "77777777-7777-4777-8777-777777777777",
+    l1 = "88888888-8888-4888-8888-888888888888",
+    l2 = "99999999-9999-4999-8999-999999999999",
+    o1 = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    o2 = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    sid = "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    sid2 = "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+    ev = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+    ev2 = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+  type Line = {
+    item: string;
+    expected: string;
+    product: string;
+    location: string;
+    count: number;
+    price: number;
+    source: string;
+    reference: string;
+  };
+  const flush = () =>
+    db.exec("set constraints all immediate;set constraints all deferred;");
+  async function setup(sameFood = false) {
+    await db.exec(`update public.profiles set timezone='UTC' where id='${alice}';insert into public.foods(id,name) values('${f2}','Other split food');
+  insert into public.retail_products(id,food_id,name,package_amount,package_unit,package_grams,is_demo) values('${p1}','${food}','Small pack',400,'g',400,true),('${p2}','${sameFood ? food : f2}','Large pack',600,'g',600,true);
+  insert into public.store_locations(id,store_id,name,country_code,currency,is_demo) values('${l1}',(select id from public.stores where slug='costco'),'QA Costco','US','USD',true),('${l2}',(select id from public.stores where slug='walmart'),'QA Walmart','US','USD',true);
+  insert into public.store_offers(id,product_id,location_id,price,currency,observed_at,provider,is_demo) values('${o1}','${p1}','${l1}',3,'USD',now(),'demo',true),('${o2}','${p2}','${l2}',5,'USD',now(),'demo',true);
+  insert into public.daily_meal_logs(user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients) values('${alice}',current_date,'Lunch','Split fixture',100,10,10,2,1,'${JSON.stringify(
+    sameFood
+      ? [{ food_id: food, quantity_g: 900 }]
+      : [
+          { food_id: food, quantity_g: 300 },
+          { food_id: f2, quantity_g: 500 },
+        ],
+  )}');`);
+    await flush();
+    await asUser(alice);
+    const needs = (
+      await db.query<{ id: string; food_id: string; updated_at: string }>(
+        "select * from public.shopping_list_items where fulfillment='needed'",
+      )
+    ).rows;
+    return [food, sameFood ? food : f2].map((f, i) => {
+      const n = needs.find((r) => r.food_id === f)!;
+      return {
+        item: n.id,
+        expected: n.updated_at,
+        product: i ? p2 : p1,
+        location: i ? l2 : l1,
+        count: 1,
+        price: i ? 5 : 3,
+        source: "demo",
+        reference: i ? o2 : o1,
+      };
+    });
+  }
+  async function apply(lines: Line[], penalty = 0) {
+    return (
+      await db.query<{ id: string }>(
+        "select public.apply_split_plan($1,'USD',2,$2,12) id",
+        [JSON.stringify(lines), penalty],
+      )
+    ).rows[0].id;
+  }
+  const assignments = async (plan: string) =>
+    (
+      await db.query<{
+        id: string;
+        item_id: string;
+        state: string;
+        original_need_g: number;
+        allocated_g: number;
+      }>(
+        "select * from public.split_assignments where plan_id=$1 order by product_name desc",
+        [plan],
+      )
+    ).rows;
+  const status = async (plan: string) =>
+    (
+      await db.query<{ status: string }>(
+        "select status from public.split_plans where id=$1",
+        [plan],
+      )
+    ).rows[0].status;
+  const stock = async (f = food) =>
+    Number(
+      (
+        await db.query<{ quantity_g: number }>(
+          "select quantity_g from public.pantry_items where food_id=$1",
+          [f],
+        )
+      ).rows[0]?.quantity_g || 0,
+    );
+  const spent = async () =>
+    Number(
+      (
+        await db.query<{ total: number }>(
+          "select coalesce(sum(total),0) total from public.purchases",
+        )
+      ).rows[0].total,
+    );
+  async function buy(
+    plan: string,
+    index = 0,
+    request = ev,
+    price = 4,
+    loose = false,
+  ) {
+    const line = (
+      await db.query<{
+        id: string;
+        item_id: string;
+        location_id: string;
+        product_id: string;
+        allocated_g: number;
+      }>(
+        "select * from public.split_assignments where plan_id=$1 and product_id=$2",
+        [plan, index ? p2 : p1],
+      )
+    ).rows[0];
+    const session = index ? sid2 : sid;
+    await db.query("select public.start_split_store($1,$2,$3,current_date)", [
+      plan,
+      line.location_id,
+      session,
+    ]);
+    await db.query(
+      "select public.purchase_split_assignment($1,$2,$3,(select updated_at from public.shopping_list_items where id=$4),$5,$6,$7,$8,null)",
+      [
+        line.id,
+        request,
+        session,
+        line.item_id,
+        loose ? null : line.product_id,
+        loose ? Number(line.allocated_g) : 1,
+        loose ? "g" : "package",
+        price,
+      ],
+    );
+    await flush();
+    return line;
+  }
+  it("persists structured store/product provenance without stock, spending or extra groceries", async () => {
+    const lines = await setup();
+    const plan = await apply(lines);
+    expect(await count("split_plans")).toBe(1);
+    expect(await count("split_assignments")).toBe(2);
+    expect(await count("shopping_list_items")).toBe(2);
+    expect(await count("purchase_items")).toBe(0);
+    expect(await stock()).toBe(0);
+    expect(await spent()).toBe(0);
+    expect(await status(plan)).toBe("applied");
+    const a = await assignments(plan);
+    expect(a.map((x) => Number(x.allocated_g)).sort()).toEqual([300, 500]);
+  });
+  it("applies the same canonical recommendation once even in reversed order", async () => {
+    const lines = await setup();
+    const plan = await apply(lines);
+    expect(await apply([...lines].reverse())).toBe(plan);
+    expect(await apply(lines)).toBe(plan);
+    expect(await count("split_assignments")).toBe(2);
+  });
+  it("shops one store at a time then completes with actual prices, stock and budget exactly once", async () => {
+    const lines = await setup();
+    const plan = await apply(lines);
+    const a = await buy(plan);
+    expect(await status(plan)).toBe("partial");
+    expect(await stock()).toBe(400);
+    expect(await spent()).toBe(4);
+    expect((await assignments(plan)).find((x) => x.id !== a.id)?.state).toBe(
+      "pending",
+    );
+    expect(
+      (
+        await db.query(
+          "select * from public.shopping_list_items where fulfillment='needed'",
+        )
+      ).rows,
+    ).toHaveLength(1);
+    await db.query("select public.finish_shopping_session($1)", [sid]);
+    await buy(plan, 1, ev2, 7);
+    expect(await status(plan)).toBe("completed");
+    expect(await stock(f2)).toBe(600);
+    expect(await spent()).toBe(11);
+    expect(
+      (
+        await db.query(
+          "select * from public.shopping_list_items where fulfillment='needed'",
+        )
+      ).rows,
+    ).toHaveLength(0);
+    await db.query(
+      "select public.purchase_split_assignment($1,$2,$3,now(),$4,1,'package',4,null)",
+      [a.id, ev, sid, p1],
+    );
+    expect(await count("purchase_items")).toBe(2);
+    expect(await stock()).toBe(400);
+    await db.query("select public.correct_shopping_purchase($1,6)", [ev]);
+    expect(await spent()).toBe(13);
+    expect(
+      Number(
+        (
+          await db.query<{ expected_total: number }>(
+            "select expected_total from public.split_plans",
+          )
+        ).rows[0].expected_total,
+      ),
+    ).toBe(8);
+  });
+  it("supports two package sizes for the same grocery across stores", async () => {
+    const plan = await apply(await setup(true));
+    await buy(plan);
+    expect(await stock()).toBe(400);
+    expect(
+      Number(
+        (
+          await db.query<{ amount: number }>(
+            "select amount from public.shopping_list_items where fulfillment='needed'",
+          )
+        ).rows[0].amount,
+      ),
+    ).toBe(500);
+    expect(
+      (await assignments(plan)).filter((a) => a.state === "pending"),
+    ).toHaveLength(1);
+    await db.query("select public.finish_shopping_session($1)", [sid]);
+    await buy(plan, 1, ev2);
+    expect(await status(plan)).toBe("completed");
+    expect(await stock()).toBe(1000);
+    expect(await count("shopping_fulfillments")).toBe(2);
+  });
+  it("keeps Already Have separate from purchases and stock", async () => {
+    const lines = await setup();
+    const plan = await apply(lines);
+    await db.query(
+      "select public.mark_shopping_requirement($1,'already_have',$2)",
+      [lines[0].item, lines[0].expected],
+    );
+    await flush();
+    expect(
+      (await assignments(plan)).filter((a) => a.state === "already_have"),
+    ).toHaveLength(1);
+    expect(await spent()).toBe(0);
+    expect(await stock()).toBe(0);
+  });
+  it("marks changed quantity for review and never recreates a covered need", async () => {
+    const lines = await setup();
+    const plan = await apply(lines);
+    await db.query(
+      "insert into public.pantry_items(user_id,food_id,quantity_g) values($1,$2,100)",
+      [alice, food],
+    );
+    await flush();
+    expect(
+      (await assignments(plan)).filter((a) => a.state === "review"),
+    ).toHaveLength(1);
+    await db.exec("update public.pantry_items set quantity_g=1000");
+    await flush();
+    expect(
+      (await assignments(plan)).filter((a) => a.state === "not_needed"),
+    ).toHaveLength(1);
+    expect(
+      (
+        await db.query(
+          "select * from public.shopping_list_items where food_id=$1",
+          [food],
+        )
+      ).rows,
+    ).toHaveLength(0);
+  });
+  it("handles an explicitly removed requirement", async () => {
+    const lines = await setup();
+    const plan = await apply(lines);
+    await db.query("delete from public.shopping_list_items where id=$1", [
+      lines[0].item,
+    ]);
+    await flush();
+    expect(
+      (await assignments(plan)).filter((a) => a.state === "not_needed"),
+    ).toHaveLength(1);
+  });
+  it("recognizes a purchase made outside the split flow", async () => {
+    const lines = await setup();
+    const plan = await apply(lines);
+    await db.exec(
+      `select public.start_shopping_session('${sid}',null,null,'Other shop','USD',current_date)`,
+    );
+    await db.query(
+      "select public.fulfill_shopping_item($1,$2,$3,$4,$5,null,1,'package',4,'manual',null)",
+      [ev, sid, lines[0].item, lines[0].expected, p1],
+    );
+    await flush();
+    expect(
+      (await assignments(plan)).filter((a) => a.state === "elsewhere"),
+    ).toHaveLength(1);
+    expect(await spent()).toBe(4);
+  });
+  it("explicitly replaces and abandons without changing grocery needs", async () => {
+    const lines = await setup();
+    const first = await apply(lines);
+    const second = await apply(lines, 1);
+    expect(await status(first)).toBe("replaced");
+    expect(await status(second)).toBe("applied");
+    expect(await apply(lines)).toBe(first);
+    expect(await status(first)).toBe("replaced");
+    await db.query("select public.abandon_split_plan($1)", [second]);
+    expect(await status(second)).toBe("abandoned");
+    expect(await count("shopping_list_items")).toBe(2);
+    expect(await spent()).toBe(0);
+  });
+  it("keeps unavailable offer provenance and accepts actual loose-weight fallback", async () => {
+    const plan = await apply(await setup());
+    await db.exec(
+      `reset role;delete from public.store_offers where id='${o1}';update public.retail_products set is_active=false where id='${p1}';`,
+    );
+    await asUser(alice);
+    await buy(plan, 0, ev, 0.01, true);
+    expect(await stock()).toBe(300);
+    expect(await spent()).toBe(3);
+    expect(
+      (
+        await db.query<{ price_reference_id: string }>(
+          "select price_reference_id from public.split_assignments where product_id=$1",
+          [p1],
+        )
+      ).rows[0].price_reference_id,
+    ).toBe(o1);
+  });
+  it("rejects another user reading, applying or purchasing known assignments", async () => {
+    const lines = await setup();
+    const plan = await apply(lines);
+    const a = (await assignments(plan))[0];
+    await asUser(bob);
+    expect(await count("split_plans")).toBe(0);
+    expect(await count("split_assignments")).toBe(0);
+    await db.exec("savepoint deny");
+    await expect(apply(lines)).rejects.toThrow("Groceries changed");
+    await db.exec("rollback to savepoint deny");
+    await expect(
+      db.query(
+        "select public.purchase_split_assignment($1,$2,$3,now(),null,1,'g',1,null)",
+        [a.id, ev, sid],
+      ),
+    ).rejects.toThrow("Assignment not found");
+  });
+  it("rejects direct assignment writes and private transaction entry points", async () => {
+    await setup();
+    await db.exec("savepoint deny");
+    await expect(
+      db.exec("update public.split_assignments set state='purchased'"),
+    ).rejects.toThrow("permission denied");
+    await db.exec("rollback to savepoint deny");
+    await expect(
+      db.query("select public.reconcile_splits_for($1)", [bob]),
+    ).rejects.toThrow("permission denied");
+  });
+  it("rolls back a stale apply instead of replacing the active plan", async () => {
+    const lines = await setup();
+    const first = await apply(lines);
+    await db.exec("savepoint stale");
+    await expect(apply([{ ...lines[0], price: 2 }, lines[1]])).rejects.toThrow(
+      "Price changed",
+    );
+    await db.exec("rollback to savepoint stale");
+    expect(await status(first)).toBe("applied");
+    expect(await count("split_plans")).toBe(1);
+  });
+  it("reopens a reversed split purchase without double stock", async () => {
+    const plan = await apply(await setup());
+    await buy(plan);
+    await db.query("select public.undo_shopping_purchase($1)", [ev]);
+    await flush();
+    expect(await stock()).toBe(0);
+    expect(await spent()).toBe(0);
+    expect(
+      (await assignments(plan)).filter((a) => a.state === "pending"),
+    ).toHaveLength(2);
+  });
+});

@@ -31,6 +31,7 @@ export type ShoppingSession = {
   events: ShoppingEvent[];
 };
 export type ShoppingContext = {
+  splits?: import("./splits").SplitPlan[];
   units: "imperial" | "metric";
   session: ShoppingSession | null;
   recentSessions: ShoppingSession[];

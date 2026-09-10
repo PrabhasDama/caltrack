@@ -4,11 +4,13 @@ export type PurchaseObservation = {
   retail_product_id: string | null;
   unit_price: number | string;
   created_at: string;
+  product?: Offer["product"] | null;
   purchase: {
     currency: string;
     store_location_id: string | null;
     purchased_on: string;
     origin: string;
+    location?: Offer["location"] | null;
   };
 };
 /** Caller supplies only its own non-voided, actual package purchases. Never invent a location. */
@@ -17,7 +19,42 @@ export function mergeObservedPrices(
   observations: PurchaseObservation[],
   today: string,
 ): Offer[] {
-  return reference.map((ref) => {
+  const available = [...reference];
+  for (const o of observations) {
+    const product = o.product,
+      location = o.purchase.location;
+    if (
+      !product?.food_id ||
+      !product.package_grams ||
+      product.is_active === false ||
+      !location ||
+      location.id !== o.purchase.store_location_id ||
+      location.currency !== o.purchase.currency ||
+      o.purchase.purchased_on > today
+    )
+      continue;
+    if (
+      !available.some(
+        (r) =>
+          r.product.id === product.id &&
+          r.location.id === location.id &&
+          r.currency === location.currency,
+      )
+    )
+      available.push({
+        id: o.id,
+        product,
+        location,
+        currency: location.currency,
+        price: Number(o.unit_price),
+        observed_at: `${o.purchase.purchased_on}T12:00:00Z`,
+        source: "manual",
+        provider: "Your purchase history",
+        is_demo: false,
+        promotion: null,
+      });
+  }
+  return available.map((ref) => {
     const rows = observations
       .filter(
         (i) =>

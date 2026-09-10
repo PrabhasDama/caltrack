@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@/components/dashboard/use-mutation";
+import { buySplitAssignment } from "@/app/(app)/groceries/split-actions";
+import type { SplitAssignment } from "@/lib/shopping/splits";
 import { purchaseGrocery } from "@/app/(app)/groceries/session-actions";
 import { money } from "@/lib/pricing/calculations";
 import { smallestSingle } from "@/lib/shopping/packages";
@@ -16,6 +18,7 @@ export function PurchaseGrocery(props: {
   context: ShoppingContext;
   item: ShoppingItem;
   food?: CatalogFood;
+  assignment?: SplitAssignment;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -46,24 +49,34 @@ function PurchaseForm({
   context,
   item,
   food,
+  assignment,
   close,
 }: {
   context: ShoppingContext;
   item: ShoppingItem;
   food?: CatalogFood;
+  assignment?: SplitAssignment;
   close: () => void;
 }) {
   const session = context.session!;
   const products = context.products.filter(
     (p) => p.food_id === item.food_id && item.food_id,
   );
-  const suggestion = smallestSingle(item.amount, products)?.packages[0];
+  const assigned =
+    assignment && products.find((p) => p.id === assignment.product_id);
+  const suggestion = assignment
+    ? assigned
+      ? { product: assigned, quantity: assignment.package_count }
+      : undefined
+    : smallestSingle(item.amount, products)?.packages[0];
   const [request] = useState(() => crypto.randomUUID());
   const [productId, setProduct] = useState(suggestion?.product.id || "");
   const [quantity, setQuantity] = useState(
-    suggestion?.quantity || Math.max(item.amount, 1),
+    suggestion?.quantity || Math.max(assignment?.allocated_g || item.amount, 1),
   );
-  const [unit, setUnit] = useState(suggestion ? "package" : item.unit);
+  const [unit, setUnit] = useState(
+    suggestion ? "package" : assignment ? "g" : item.unit,
+  );
   const [price, setPrice] = useState("");
   const [source, setSource] = useState<"manual" | "demo">("manual");
   const { pending, error, run } = useMutation();
@@ -93,23 +106,44 @@ function PurchaseForm({
         const f = new FormData(e.currentTarget);
         run(
           () =>
-            purchaseGrocery({
-              request,
-              session: session.id,
-              item: item.id,
-              expected: item.updated_at,
-              product: productId || null,
-              offer: source === "demo" ? offer?.id || null : null,
-              quantity,
-              unit,
-              price: Number(price),
-              priceSource: source,
-              expires: f.get("expires") || null,
-            }),
+            assignment
+              ? buySplitAssignment({
+                  assignment: assignment.id,
+                  request,
+                  session: session.id,
+                  expected: item.updated_at,
+                  product: productId || null,
+                  quantity,
+                  unit,
+                  price: Number(price),
+                  expires: f.get("expires") || null,
+                })
+              : purchaseGrocery({
+                  request,
+                  session: session.id,
+                  item: item.id,
+                  expected: item.updated_at,
+                  product: productId || null,
+                  offer: source === "demo" ? offer?.id || null : null,
+                  quantity,
+                  unit,
+                  price: Number(price),
+                  priceSource: source,
+                  expires: f.get("expires") || null,
+                }),
           close,
         );
       }}
     >
+      {assignment && (
+        <p className="notice">
+          Saved recommendation: {assignment.package_count} ×{" "}
+          {assignment.product_name}. Expected{" "}
+          {money(assignment.expected_unit_price, session.receipt.currency)}{" "}
+          each. If unavailable, choose a matching alternative or enter the
+          actual food weight. The original recommendation stays in history.
+        </p>
+      )}
       <label className="field">
         Product or loose food
         <select
@@ -123,8 +157,14 @@ function PurchaseForm({
             setUnit(p ? "package" : item.unit);
             setQuantity(
               p?.package_grams
-                ? Math.max(1, Math.ceil(item.amount / p.package_grams))
-                : Math.max(item.amount, 1),
+                ? Math.max(
+                    1,
+                    Math.ceil(
+                      (assignment?.allocated_g || item.amount) /
+                        p.package_grams,
+                    ),
+                  )
+                : Math.max(assignment?.allocated_g || item.amount, 1),
             );
           }}
         >
@@ -198,7 +238,7 @@ function PurchaseForm({
           }}
         />
       </label>
-      {offer?.is_demo && (
+      {!assignment && offer?.is_demo && (
         <Button
           type="button"
           variant="ghost"

@@ -29,6 +29,8 @@ export async function GET() {
     "shopping_lists",
     "shopping_list_items",
     "shopping_sessions",
+    "split_plans",
+    "split_assignments",
     "shopping_fulfillments",
     "purchases",
     "purchase_items",

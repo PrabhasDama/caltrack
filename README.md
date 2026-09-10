@@ -2,7 +2,7 @@
 
 Eat better. Spend smarter. Reach your goal.
 
-A real Next.js / Supabase application implementing **Phases 1–6** of the CalTrack specification. Accounts, onboarding, and daily tracking persist in PostgreSQL with per-user row-level security. The advanced pricing engine has deliberately not been started.
+A real Next.js / Supabase application implementing **Phases 1–9** of the CalTrack specification. Accounts, onboarding, daily tracking and saved split-store shopping plans persist in PostgreSQL with per-user row-level security. See CHECKPOINT.md for the latest verification and practical limits; earlier phase sections below describe their original milestones. Phase 10 has not been started.
 
 ## Implemented scope
 
@@ -209,8 +209,12 @@ Changes: React request-scoped memoization deduplicates profile/auth/catalog/pric
 
 ## Phase 9 status
 
-Core replenishment, Budget receipt correction/reversal, deterministic objective scoring and shared private observed pricing are integrated. See CHECKPOINT.md for exact verification results and remaining limits. Migrations 021–023 are applied; 023 corrects explicit shopping horizons. No live retailer or travel provider is configured.
+Core replenishment, Budget receipt correction/reversal, deterministic objective scoring and shared private observed pricing are integrated. See CHECKPOINT.md for exact verification results and remaining limits. Migrations 021–024 are applied; 023 corrects explicit shopping horizons and 024 adds saved split plans. No live retailer or travel provider is configured.
 
-Plan and Groceries use the same request-scoped price inputs. Actual package observations require known product/location/currency; unknown data never becomes an invented price or distance. The twelve-candidate planner, bounded package/store search and draft-aware swaps provide estimates, not guaranteed minima. Demo inputs stay labeled. Saved split-cart application and multi-product checkout remain partial.
+Plan and Groceries use the same request-scoped price inputs. Actual package observations require known product/location/currency; unknown data never becomes an invented price or distance. The twelve-candidate planner, bounded package/store search and draft-aware swaps provide estimates, not guaranteed minima. Demo inputs stay labeled.
 
-For full browser QA, create the normal disposable account and a second untouched account using `QA_ACCOUNT_FILE=.env.qa-second node scripts/qa-account.mjs`, then run the ordered suite against the local production preview. Cleanup both with the same respective environment setting and `--cleanup`. No email is sent. Both files are ignored and must be deleted through cleanup after QA. Private page reuse lasts 30 seconds, auth/mutations invalidate views, and optimizer summary keys include owner and all inputs.
+Use This Plan saves structured store/product/price assignments without creating a purchase or changing pantry stock. Shop one store, confirm actual prices, finish that session, then return for the remaining store. Multiple package sizes can fulfill the same requirement separately. Saved snapshots retain original expected prices; receipts retain actual spending. Already-have, external purchases, changed/deleted needs, replacements and abandonment reconcile without recreating demand. Unavailable offers permit manual checkout. Opening a saved plan reads its assignments; only an explicit new comparison/application runs the cart optimizer.
+
+For full browser QA, create three disposable accounts with `node scripts/qa-account.mjs`, `QA_ACCOUNT_FILE=.env.qa-second node scripts/qa-account.mjs`, and `QA_ACCOUNT_FILE=.env.qa-split node scripts/qa-account.mjs`. Run the ordered suite against the local production preview with `QA_BASE_URL=http://127.0.0.1:3001 npx playwright test`. The split scenario uses its own fresh account and private actual-price transactions without changing shared retailer data. Cleanup all three with the same respective environment setting and `--cleanup`. No email is sent. All three files are ignored and must be deleted through cleanup after QA. Run `supabase db query --linked --file supabase/tests/split_plans_security.sql --output json` alongside the six existing rollback security suites.
+
+Private page reuse lasts 30 seconds, auth/mutations invalidate views, and optimizer summary keys include owner and all inputs. Cart search remains bounded and is not a global minimum guarantee. Expected totals exclude unrecorded tax/travel; one shopping session is open at a time. Previous split summaries show the latest ten plans; the private export includes all saved plans and assignments.

@@ -1,4 +1,5 @@
 import "server-only";
+import { splitPlanSchema } from "@/lib/shopping/splits";
 import { z } from "zod";
 import { requireProfile } from "./auth";
 import { productSchema } from "./pricing";
@@ -34,7 +35,10 @@ const sessionSchema = z.object({
 });
 export async function getShoppingContext(): Promise<ShoppingContext> {
   const { client, user, profile } = await requireProfile();
-  const [sessions, stores, locations, products, pricing, preferences] =
+  const synchronized = await client.rpc("sync_split_plans");
+  if (synchronized.error)
+    throw new Error("Your saved shopping plan could not be refreshed.");
+  const [sessions, stores, locations, products, pricing, preferences, splits] =
     await Promise.all([
       client
         .from("shopping_sessions")
@@ -56,19 +60,27 @@ export async function getShoppingContext(): Promise<ShoppingContext> {
         .from("store_preferences")
         .select("store_id")
         .eq("user_id", user.id),
+      client
+        .from("split_plans")
+        .select("*,assignments:split_assignments(*)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(10),
     ]);
   if (
     sessions.error ||
     stores.error ||
     locations.error ||
     products.error ||
-    preferences.error
+    preferences.error ||
+    splits.error
   )
     throw new Error("Shopping information could not be loaded.");
   const rows: ShoppingSession[] = sessionSchema.array().parse(sessions.data);
   const ps = productSchema.array().parse(products.data);
   return {
     units: profile.units,
+    splits: splitPlanSchema.array().parse(splits.data),
     session: rows.find((s) => s.status === "open") || null,
     recentSessions: rows.filter((s) => s.status === "finished"),
     products: ps,

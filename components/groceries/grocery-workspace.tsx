@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { SplitPlanPanel } from "./split-plan-panel";
 import { CartComparison } from "./cart-comparison";
 import Link from "next/link";
 import { Plus, RefreshCw, ShoppingBasket, ArrowUpRight } from "lucide-react";
@@ -46,6 +47,7 @@ export function GroceryWorkspace({
       ? shopping.end_date
       : addDays(today, 6),
   );
+  const [compare, setCompare] = useState(false);
   const [message, setMessage] = useState("");
   const items = useMemo(
     () =>
@@ -74,12 +76,22 @@ export function GroceryWorkspace({
           </Button>
         </ShoppingEditor>
       </header>
-      <CartComparison
-        items={items}
+      <SplitPlanPanel
         context={context}
+        items={items}
         foods={foods}
         today={today}
+        onCompare={() => setCompare(true)}
       />
+      {(!context.splits?.length || compare) && (
+        <CartComparison
+          items={items}
+          context={context}
+          foods={foods}
+          today={today}
+          onApplied={() => setCompare(false)}
+        />
+      )}
       <SessionPanel context={context} today={today} />
       <section className="card grocery-controls">
         <form

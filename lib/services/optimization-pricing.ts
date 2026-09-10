@@ -15,7 +15,7 @@ export const getOptimizationPricing = cache(async () => {
     client
       .from("purchase_items")
       .select(
-        "id,retail_product_id,unit_price,created_at,purchase:purchases!inner(currency,store_location_id,purchased_on,origin)",
+        "id,retail_product_id,unit_price,created_at,product:retail_products(*),purchase:purchases!inner(currency,store_location_id,purchased_on,origin,location:store_locations(*))",
       )
       .eq("user_id", user.id)
       .eq("unit", "package")

@@ -3777,3 +3777,5 @@ button:disabled {
 .optimization-summary .budget-metrics { gap:16px; }
 .optimization-summary .budget-metrics strong { font-size:1.6rem; }
 .optimizer-carts { min-width:0; }
+
+.split-store-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;margin-block:20px}.split-assignment{border-top:1px solid var(--border);padding-block:16px;overflow-wrap:anywhere}.split-store h4{margin:0}.split-plan-panel{overflow-wrap:anywhere}
