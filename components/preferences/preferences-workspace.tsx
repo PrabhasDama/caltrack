@@ -39,6 +39,13 @@ export function PreferencesWorkspace({
         </div>
       )}
       <div className="preferences-grid">
+        <Link href="/stores" className="card">
+          <h2>Store locations and search area</h2>
+          <p>
+            Choose preferred or excluded locations, update your radius, and
+            control price sharing.
+          </p>
+        </Link>
         {(Object.keys(sectionFields) as Section[]).map((section) => (
           <PreferenceCard
             key={`${section}-${JSON.stringify(data[section])}`}

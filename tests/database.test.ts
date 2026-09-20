@@ -29,7 +29,7 @@ async function count(table: string) {
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(
-    `create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth,public to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;`,
+    `create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;grant usage on schema auth,public to authenticated,anon,service_role;grant execute on function auth.uid() to authenticated,anon;`,
   );
   // Storage's service-owned tables/functions are provided by Supabase in production.
   await db.exec(
@@ -979,6 +979,15 @@ describe("independent preference edits", () => {
       ).rows[0].onboarding_step,
     ).toBe(1);
   });
+  it("accepts unchanged browser-rounded goal weights but still rejects a stale weight", async () => {
+    await profile();
+    await db.exec(`insert into public.user_goals(user_id,goal,goal_weight_kg,pace) values('${alice}','recomp',165/2.2046226218,'moderate')`);
+    const expected = {goal: "recomp", goal_weight_kg: Number("74.8427410516558458"), pace: "moderate"};
+    await db.query("select public.save_preference_section($1,$2,$3)", ["goals", {...expected, goal: "maintain"}, expected]);
+    expect((await db.query<{goal: string}>("select goal from public.user_goals")).rows[0].goal).toBe("maintain");
+    await db.exec("update public.user_goals set goal_weight_kg=goal_weight_kg+0.001");
+    await expect(db.query("select public.save_preference_section($1,$2,$3)", ["goals", {...expected, goal: "build"}, {...expected, goal: "maintain"}])).rejects.toThrow("These preferences changed");
+  });
   it("preserves independent concurrent section changes", async () => {
     await profile();
     await db.query("select public.save_preference_section($1,$2,$3)", [
@@ -1036,6 +1045,232 @@ describe("independent preference edits", () => {
     await expect(
       db.query("select public.save_onboarding($1)", [{}]),
     ).rejects.toThrow("Use Preferences");
+  });
+});
+
+describe("real provider catalog and private price sharing", () => {
+  const stamp = "2026-09-18T12:00:00Z";
+  async function imported() {
+    await db.exec("reset role");
+    const location = (
+      await db.query<{ id: string }>(
+        "select public.import_kroger_location($1) id",
+        [
+          JSON.stringify({
+            providerLocationId: "70300186",
+            name: "Ralphs - Traffic Circle",
+            chain: "RALPHS",
+            address: "1930 N Lakewood Blvd",
+            postalCode: "90815",
+            coordinates: { latitude: 33.7921389, longitude: -118.1414178 },
+            retrievedAt: stamp,
+          }),
+        ],
+      )
+    ).rows[0].id;
+    const row = {
+      provider: "kroger",
+      environment: "production",
+      providerLocationId: "70300186",
+      providerProductId: "0001111001798",
+      providerItemId: "0001111001798",
+      description: "Kroger Mozzarella",
+      brand: "Kroger",
+      upc: "0001111001798",
+      packageAmount: 8,
+      packageUnit: "oz",
+      packageGrams: 226.796,
+      packageSize: "8 oz",
+      effectivePrice: 3.29,
+      regularPrice: 3.29,
+      promoPrice: null,
+      availability: "in_stock",
+      retrievedAt: stamp,
+    };
+    await db.query("select public.import_kroger_products($1,$2)", [
+      location,
+      JSON.stringify([row]),
+    ]);
+    const product = (
+      await db.query<{ id: string }>(
+        "select id from public.retail_products where provider='kroger'",
+      )
+    ).rows[0].id;
+    return { location, product, row };
+  }
+  it("deduplicates provider identity and legitimate history, and marks a newly missing price unavailable", async () => {
+    const { location, row } = await imported();
+    await db.query("select public.import_kroger_products($1,$2)", [
+      location,
+      JSON.stringify([row]),
+    ]);
+    expect(
+      (
+        await db.query(
+          "select * from public.price_history where source='kroger'",
+        )
+      ).rows,
+    ).toHaveLength(1);
+    await db.query("select public.import_kroger_products($1,$2)", [
+      location,
+      JSON.stringify([
+        { ...row, effectivePrice: null, retrievedAt: "2026-09-18T13:00:00Z" },
+      ]),
+    ]);
+    expect(
+      (
+        await db.query<{ price_status: string }>(
+          "select price_status from public.store_offers where provider='kroger'",
+        )
+      ).rows[0].price_status,
+    ).toBe("unavailable");
+    expect(
+      (
+        await db.query(
+          "select * from public.price_history where source='kroger'",
+        )
+      ).rows,
+    ).toHaveLength(1);
+  });
+  it("keeps reviewed food/weight matches private while allowing the existing split/purchase product resolver", async () => {
+    const { product } = await imported();
+    await asUser(alice);
+    await db.query("select public.confirm_product_match($1,$2,226.796)", [
+      product,
+      food,
+    ]);
+    expect(
+      (
+        await db.query<{ food_id: string }>(
+          "select food_id from public.effective_products() where id=$1",
+          [product],
+        )
+      ).rows[0].food_id,
+    ).toBe(food);
+    await asUser(bob);
+    expect(await count("product_food_matches")).toBe(0);
+    expect(
+      (
+        await db.query<{ food_id: string | null }>(
+          "select food_id from public.effective_products() where id=$1",
+          [product],
+        )
+      ).rows[0].food_id,
+    ).toBeNull();
+  });
+  it("isolates location preferences and blocks callers minting shared provider quotes", async () => {
+    const { location, row } = await imported();
+    await asUser(alice);
+    await db.query(
+      "insert into public.location_preferences(user_id,location_id,state) values($1,$2,'selected')",
+      [alice, location],
+    );
+    await db.exec("select public.save_location_settings('90815',10,false)");
+    await asUser(bob);
+    expect(await count("location_preferences")).toBe(0);
+    expect(await count("location_search_settings")).toBe(0);
+    await db.exec("savepoint denied");
+    await expect(
+      db.query("select public.import_kroger_products($1,$2)", [
+        location,
+        JSON.stringify([row]),
+      ]),
+    ).rejects.toThrow("permission denied");
+    await db.exec("rollback to savepoint denied");
+    await expect(
+      db.query(
+        "insert into public.location_preferences(user_id,location_id,state) values($1,$2,'excluded')",
+        [alice, location],
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+  it("records actual shopping observations once, shares only opted-in minimal fields, and corrects/reverses them atomically", async () => {
+    // This fixture uses SQL current_date; keep the disposable owner's day in UTC too.
+    await db.exec(`update public.profiles set timezone='UTC' where id='${alice}'`);
+    const { location, product } = await imported();
+    await asUser(alice);
+    await db.query("select public.confirm_product_match($1,$2,226.796)", [
+      product,
+      food,
+    ]);
+    await db.exec("select public.save_location_settings('90815',10,true)");
+    await db.query(
+      "insert into public.daily_meal_logs(user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients) values($1,current_date,'Lunch','QA',100,10,10,1,1,$2)",
+      [alice, JSON.stringify([{ food_id: food, quantity_g: 200 }])],
+    );
+    await db.exec(
+      "set constraints all immediate;set constraints all deferred;",
+    );
+    const item = (
+      await db.query<{ id: string; updated_at: string }>(
+        "select id,updated_at from public.shopping_list_items where fulfillment='needed'",
+      )
+    ).rows[0];
+    const sid = meal,
+      request = "99999999-9999-4999-8999-999999999999";
+    await db.query(
+      "select public.start_shopping_session($1,(select store_id from public.store_locations where id=$2),$2,'Ralphs','USD',current_date)",
+      [sid, location],
+    );
+    const args = [request, sid, item.id, item.updated_at, product];
+    for (let n = 0; n < 2; n++)
+      await db.query(
+        "select public.fulfill_shopping_item($1,$2,$3,$4,$5,null,1,'package',4.59,'manual',null)",
+        args,
+      );
+    expect(await count("receipt_price_observations")).toBe(1);
+    expect(await count("shared_price_observations")).toBe(1);
+    await db.query("select public.correct_shopping_purchase($1,4.79)", [
+      request,
+    ]);
+    expect(
+      Number(
+        (
+          await db.query<{ price: number }>(
+            "select price from public.shared_price_observations",
+          )
+        ).rows[0].price,
+      ),
+    ).toBe(4.79);
+    await asUser(bob);
+    expect(await count("receipt_price_observations")).toBe(0);
+    const shared = (
+      await db.query("select * from public.shared_price_observations")
+    ).rows[0];
+    expect(Object.keys(shared as Record<string, unknown>).sort()).toEqual(
+      [
+        "id",
+        "product_id",
+        "location_id",
+        "price",
+        "currency",
+        "package_grams",
+        "observed_on",
+        "source",
+      ].sort(),
+    );
+    await asUser(alice);
+    await db.query("select public.undo_shopping_purchase($1)", [request]);
+    expect(await count("shared_price_observations")).toBe(0);
+    expect(await count("receipt_price_observations")).toBe(0);
+  });
+  it("keeps sharing off by default and validates package weights", async () => {
+    const { product } = await imported();
+    await asUser(alice);
+    await db.exec("select public.save_location_settings('90815',15,false)");
+    expect(
+      (
+        await db.query<{ share_prices: boolean }>(
+          "select share_prices from public.location_search_settings",
+        )
+      ).rows[0].share_prices,
+    ).toBe(false);
+    await expect(
+      db.query("select public.confirm_product_match($1,$2,999)", [
+        product,
+        food,
+      ]),
+    ).rejects.toThrow("actual package weight");
   });
 });
 

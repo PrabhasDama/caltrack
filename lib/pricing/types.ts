@@ -3,11 +3,16 @@ export type RetailProduct = {
   id: string;
   food_id: string | null;
   name: string;
-  package_amount: number;
-  package_unit: string;
+  package_amount: number | null;
+  package_unit: string | null;
   package_grams: number | null;
   package_label?: string | null;
   is_active?: boolean;
+  provider?: string | null;
+  provider_product_id?: string | null;
+  provider_item_id?: string | null;
+  upc?: string | null;
+  brand?: string | null;
 };
 export type StoreLocation = {
   id: string;
@@ -16,6 +21,11 @@ export type StoreLocation = {
   country_code: "US" | "CA";
   currency: Currency;
   is_demo: boolean;
+  provider?: string | null;
+  provider_location_id?: string | null;
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 export type StoreOffer = {
   id: string;
@@ -27,6 +37,12 @@ export type StoreOffer = {
   provider: string;
   is_demo: boolean;
   promotion: string | null;
+  retrieved_at?: string | null;
+  environment?: string;
+  regular_price?: number | null;
+  promo_price?: number | null;
+  availability?: string;
+  price_status?: string;
 };
 export type PriceObservation = {
   id: string;

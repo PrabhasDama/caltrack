@@ -50,11 +50,7 @@ export async function getShoppingContext(): Promise<ShoppingContext> {
         .limit(10),
       client.from("stores").select("id,name").order("name"),
       client.from("store_locations").select("*").order("name"),
-      client
-        .from("retail_products")
-        .select("*")
-        .eq("is_active", true)
-        .order("name"),
+      client.rpc("effective_products"),
       getOptimizationPricing(),
       client
         .from("store_preferences")
@@ -77,7 +73,10 @@ export async function getShoppingContext(): Promise<ShoppingContext> {
   )
     throw new Error("Shopping information could not be loaded.");
   const rows: ShoppingSession[] = sessionSchema.array().parse(sessions.data);
-  const ps = productSchema.array().parse(products.data);
+  const ps = productSchema
+    .array()
+    .parse(products.data)
+    .filter((p) => p.is_active !== false);
   return {
     units: profile.units,
     splits: splitPlanSchema.array().parse(splits.data),

@@ -19,6 +19,14 @@ export default function More() {
         <p>The essentials are here. The next chapters build on them.</p>
       </header>
       <div className="info-grid">
+        <Link href="/stores" className="card more-link">
+          <PackageOpen size={25} />
+          <h2>Nearby stores</h2>
+          <p className="muted">
+            Real locations, reviewed products and your search preferences.
+          </p>
+          <ArrowUpRight size={17} />
+        </Link>
         <Link href="/prep" className="card more-link">
           <Leaf size={25} />
           <h2>Meal prep</h2>

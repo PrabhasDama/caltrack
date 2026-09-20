@@ -1,0 +1,311 @@
+{
+  "checkedAt": "2026-09-19T05:29:07.963Z",
+  "environment": "certification",
+  "capabilities": {
+    "storeLocations": "supported",
+    "productCatalog": "supported",
+    "inventory": "supported",
+    "pricing": "supported"
+  },
+  "note": "Certification fields are observations of the test environment, not verified production store quotes. Prices vary by product; missing is never zero.",
+  "locations": [
+    {
+      "id": "70300186",
+      "name": "Ralphs - Traffic Circle"
+    },
+    {
+      "id": "70400762",
+      "name": "Food 4 Less - Anaheim Redondo"
+    }
+  ],
+  "samples": [
+    {
+      "location": "70300186",
+      "term": "eggs",
+      "search": {
+        "provider": "kroger",
+        "environment": "certification",
+        "providerProductId": "0001111090406",
+        "providerItemId": "0001111090406",
+        "providerLocationId": "70300186",
+        "upc": "0001111090406",
+        "brand": "Kroger",
+        "description": "Kroger® Grade AA Cage Free Large White Eggs",
+        "packageSize": "12 ct",
+        "packageAmount": 12,
+        "packageUnit": "piece",
+        "packageGrams": null,
+        "availability": "in_stock",
+        "regularPrice": null,
+        "promoPrice": null,
+        "effectivePrice": null,
+        "currency": "USD",
+        "retrievedAt": "2026-09-19T05:28:58.287Z",
+        "priceBasis": "package"
+      },
+      "detail": [
+        {
+          "provider": "kroger",
+          "environment": "certification",
+          "providerProductId": "0001111090406",
+          "providerItemId": "0001111090406",
+          "providerLocationId": "70300186",
+          "upc": "0001111090406",
+          "brand": "Kroger",
+          "description": "Kroger® Grade AA Cage Free Large White Eggs",
+          "packageSize": "12 ct",
+          "packageAmount": 12,
+          "packageUnit": "piece",
+          "packageGrams": null,
+          "availability": "in_stock",
+          "regularPrice": null,
+          "promoPrice": null,
+          "effectivePrice": null,
+          "currency": "USD",
+          "retrievedAt": "2026-09-19T05:28:58.693Z",
+          "priceBasis": "package"
+        }
+      ]
+    },
+    {
+      "location": "70300186",
+      "term": "milk",
+      "search": {
+        "provider": "kroger",
+        "environment": "certification",
+        "providerProductId": "0001111001798",
+        "providerItemId": "0001111001798",
+        "providerLocationId": "70300186",
+        "upc": "0001111001798",
+        "brand": "Kroger",
+        "description": "Kroger® Whole Milk Shredded Mozzarella Cheese",
+        "packageSize": "8 oz",
+        "packageAmount": 8,
+        "packageUnit": "oz",
+        "packageGrams": 226.796,
+        "availability": "in_stock",
+        "regularPrice": 3.29,
+        "promoPrice": null,
+        "effectivePrice": 3.29,
+        "currency": "USD",
+        "retrievedAt": "2026-09-19T05:28:59.285Z",
+        "priceBasis": "package"
+      },
+      "detail": [
+        {
+          "provider": "kroger",
+          "environment": "certification",
+          "providerProductId": "0001111001798",
+          "providerItemId": "0001111001798",
+          "providerLocationId": "70300186",
+          "upc": "0001111001798",
+          "brand": "Kroger",
+          "description": "Kroger® Whole Milk Shredded Mozzarella Cheese",
+          "packageSize": "8 oz",
+          "packageAmount": 8,
+          "packageUnit": "oz",
+          "packageGrams": 226.796,
+          "availability": "in_stock",
+          "regularPrice": 3.29,
+          "promoPrice": null,
+          "effectivePrice": 3.29,
+          "currency": "USD",
+          "retrievedAt": "2026-09-19T05:28:59.653Z",
+          "priceBasis": "package"
+        }
+      ]
+    },
+    {
+      "location": "70300186",
+      "term": "rice",
+      "search": {
+        "provider": "kroger",
+        "environment": "certification",
+        "providerProductId": "0001111078747",
+        "providerItemId": "0001111078747",
+        "providerLocationId": "70300186",
+        "upc": "0001111078747",
+        "brand": "Senor Gusto",
+        "description": "Senor Gusto Rice Pudding",
+        "packageSize": "8 oz",
+        "packageAmount": 8,
+        "packageUnit": "oz",
+        "packageGrams": 226.796,
+        "availability": "out_of_stock",
+        "regularPrice": null,
+        "promoPrice": null,
+        "effectivePrice": null,
+        "currency": "USD",
+        "retrievedAt": "2026-09-19T05:29:01.318Z",
+        "priceBasis": "package"
+      },
+      "detail": [
+        {
+          "provider": "kroger",
+          "environment": "certification",
+          "providerProductId": "0001111078747",
+          "providerItemId": "0001111078747",
+          "providerLocationId": "70300186",
+          "upc": "0001111078747",
+          "brand": "Senor Gusto",
+          "description": "Senor Gusto Rice Pudding",
+          "packageSize": "8 oz",
+          "packageAmount": 8,
+          "packageUnit": "oz",
+          "packageGrams": 226.796,
+          "availability": "out_of_stock",
+          "regularPrice": null,
+          "promoPrice": null,
+          "effectivePrice": null,
+          "currency": "USD",
+          "retrievedAt": "2026-09-19T05:29:01.729Z",
+          "priceBasis": "package"
+        }
+      ]
+    },
+    {
+      "location": "70400762",
+      "term": "eggs",
+      "search": {
+        "provider": "kroger",
+        "environment": "certification",
+        "providerProductId": "0001111090406",
+        "providerItemId": "0001111090406",
+        "providerLocationId": "70400762",
+        "upc": "0001111090406",
+        "brand": "Kroger",
+        "description": "Kroger® Grade AA Cage Free Large White Eggs",
+        "packageSize": "12 ct",
+        "packageAmount": 12,
+        "packageUnit": "piece",
+        "packageGrams": null,
+        "availability": "out_of_stock",
+        "regularPrice": 2.99,
+        "promoPrice": null,
+        "effectivePrice": 2.99,
+        "currency": "USD",
+        "retrievedAt": "2026-09-19T05:29:04.804Z",
+        "priceBasis": "package"
+      },
+      "detail": [
+        {
+          "provider": "kroger",
+          "environment": "certification",
+          "providerProductId": "0001111090406",
+          "providerItemId": "0001111090406",
+          "providerLocationId": "70400762",
+          "upc": "0001111090406",
+          "brand": "Kroger",
+          "description": "Kroger® Grade AA Cage Free Large White Eggs",
+          "packageSize": "12 ct",
+          "packageAmount": 12,
+          "packageUnit": "piece",
+          "packageGrams": null,
+          "availability": "out_of_stock",
+          "regularPrice": 2.99,
+          "promoPrice": null,
+          "effectivePrice": 2.99,
+          "currency": "USD",
+          "retrievedAt": "2026-09-19T05:29:05.243Z",
+          "priceBasis": "package"
+        }
+      ]
+    },
+    {
+      "location": "70400762",
+      "term": "milk",
+      "search": {
+        "provider": "kroger",
+        "environment": "certification",
+        "providerProductId": "0001111001798",
+        "providerItemId": "0001111001798",
+        "providerLocationId": "70400762",
+        "upc": "0001111001798",
+        "brand": "Kroger",
+        "description": "Kroger® Whole Milk Shredded Mozzarella Cheese",
+        "packageSize": "8 oz",
+        "packageAmount": 8,
+        "packageUnit": "oz",
+        "packageGrams": 226.796,
+        "availability": "in_stock",
+        "regularPrice": 2.69,
+        "promoPrice": null,
+        "effectivePrice": 2.69,
+        "currency": "USD",
+        "retrievedAt": "2026-09-19T05:29:05.963Z",
+        "priceBasis": "package"
+      },
+      "detail": [
+        {
+          "provider": "kroger",
+          "environment": "certification",
+          "providerProductId": "0001111001798",
+          "providerItemId": "0001111001798",
+          "providerLocationId": "70400762",
+          "upc": "0001111001798",
+          "brand": "Kroger",
+          "description": "Kroger® Whole Milk Shredded Mozzarella Cheese",
+          "packageSize": "8 oz",
+          "packageAmount": 8,
+          "packageUnit": "oz",
+          "packageGrams": 226.796,
+          "availability": "in_stock",
+          "regularPrice": 2.69,
+          "promoPrice": null,
+          "effectivePrice": 2.69,
+          "currency": "USD",
+          "retrievedAt": "2026-09-19T05:29:06.677Z",
+          "priceBasis": "package"
+        }
+      ]
+    },
+    {
+      "location": "70400762",
+      "term": "rice",
+      "search": {
+        "provider": "kroger",
+        "environment": "certification",
+        "providerProductId": "0001111078747",
+        "providerItemId": "0001111078747",
+        "providerLocationId": "70400762",
+        "upc": "0001111078747",
+        "brand": "Senor Gusto",
+        "description": "Senor Gusto Rice Pudding",
+        "packageSize": "8 oz",
+        "packageAmount": 8,
+        "packageUnit": "oz",
+        "packageGrams": 226.796,
+        "availability": "out_of_stock",
+        "regularPrice": 1.19,
+        "promoPrice": null,
+        "effectivePrice": 1.19,
+        "currency": "USD",
+        "retrievedAt": "2026-09-19T05:29:07.502Z",
+        "priceBasis": "package"
+      },
+      "detail": [
+        {
+          "provider": "kroger",
+          "environment": "certification",
+          "providerProductId": "0001111078747",
+          "providerItemId": "0001111078747",
+          "providerLocationId": "70400762",
+          "upc": "0001111078747",
+          "brand": "Senor Gusto",
+          "description": "Senor Gusto Rice Pudding",
+          "packageSize": "8 oz",
+          "packageAmount": 8,
+          "packageUnit": "oz",
+          "packageGrams": 226.796,
+          "availability": "out_of_stock",
+          "regularPrice": 1.19,
+          "promoPrice": null,
+          "effectivePrice": 1.19,
+          "currency": "USD",
+          "retrievedAt": "2026-09-19T05:29:07.963Z",
+          "priceBasis": "package"
+        }
+      ]
+    }
+  ]
+}

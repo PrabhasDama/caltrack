@@ -238,7 +238,10 @@ test("onboarding, daily tracking, mobile layout, and persistence", async ({
     .click();
   await expect(page.locator(".shopping-row")).not.toHaveCount(0);
   await expect(
-    page.getByText("Demo pricing", { exact: true }).first(),
+    page
+      .locator(".shopping-row")
+      .getByText("DEMO PRICE", { exact: true })
+      .first(),
   ).toBeVisible();
   const beforeStock = await (await page.request.get("/api/export")).json();
   const beforeAmount = Number(

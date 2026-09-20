@@ -63,10 +63,31 @@ test("measurement preferences, recipe review, pantry selection, and mobile dialo
     await page
       .getByRole("button", { name: "Higher Protein", exact: true })
       .click();
+    await expect(
+      page.getByRole("button", { name: "Higher Protein", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    // The saved week varies by date; an eligible higher-protein tofu swap is not guaranteed.
+    for (const text of await page
+      .locator(".swap-options button")
+      .allTextContents()) {
+      const protein = Number(text.match(/(\d+)g protein/)?.[1]);
+      expect(protein).toBeGreaterThanOrEqual(
+        Math.round(Number(savedRecipe.protein)),
+      );
+    }
+    await page.getByRole("button", { name: "Browse All", exact: true }).click();
+    await expect(page.locator(".swap-options button").first()).toBeVisible();
+    const searchableName = await page
+      .locator(".swap-options button strong")
+      .first()
+      .innerText();
     await page.getByLabel("Search meals").fill("zz-no-matching-recipe");
     await expect(page.locator(".swap-options button")).toHaveCount(0);
-    await page.getByLabel("Search meals").fill("tofu");
+    await page.getByLabel("Search meals").fill(searchableName);
     await expect(page.locator(".swap-options button").first()).toBeVisible();
+    await expect(
+      page.locator(".swap-options button strong").first(),
+    ).toHaveText(searchableName);
     await page.screenshot({ path: "test-results/review-swap-desktop.png" });
     await page
       .getByRole("button", { name: "Close dialog", exact: true })

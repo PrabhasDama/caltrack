@@ -1,4 +1,5 @@
 "use client";
+import { PriceDisplay } from "@/components/groceries/price-display";
 import { useMemo } from "react";
 import { optimizerCache } from "@/lib/optimization/cache";
 import {
@@ -249,9 +250,19 @@ export function CartView({
                       <p key={p.offer.id}>
                         {p.count} ×{" "}
                         {p.offer.product.package_label || p.offer.product.name}:{" "}
-                        {money(p.offer.price * p.count, currency)} ·{" "}
-                        {p.offer.source} · observed{" "}
-                        {p.offer.observed_at.slice(0, 10)} · {q.status}
+                        <PriceDisplay
+                          value={{
+                            price: p.offer.price * p.count,
+                            currency,
+                            source: p.offer.source,
+                            observedAt: p.offer.observed_at,
+                            environment:
+                              p.offer.source === "provider"
+                                ? p.offer.environment
+                                : undefined,
+                          }}
+                        />{" "}
+                        · {q.status}
                         {q.average !== null
                           ? ` · 30-day average ${money(q.average, currency)}, low ${money(q.low!, currency)}, high ${money(q.high!, currency)}`
                           : " · too little history for a price rating"}

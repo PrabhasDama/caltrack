@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   Leaf,
   Wallet,
+  MapPin,
 } from "lucide-react";
 import { logout } from "@/app/auth/actions";
 const navigation = [
@@ -22,6 +23,7 @@ const navigation = [
   { href: "/groceries", name: "Groceries", icon: ShoppingBasket },
   { href: "/pantry", name: "Pantry", icon: PackageOpen },
   { href: "/budget", name: "Budget", icon: Wallet },
+  { href: "/stores", name: "Stores", icon: MapPin },
   { href: "/progress", name: "Progress", icon: ChartNoAxesCombined },
   { href: "/more", name: "More", icon: Ellipsis },
 ];
@@ -117,7 +119,7 @@ export function AppShell({
       </div>
       <nav className="mobile-nav" aria-label="Mobile navigation">
         {navigation
-          .filter((n) => !["Pantry", "Budget"].includes(n.name))
+          .filter((n) => !["Pantry", "Budget", "Stores"].includes(n.name))
           .map(({ href, name, icon: Icon }) =>
             href ? (
               <Link

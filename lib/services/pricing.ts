@@ -8,13 +8,18 @@ export const productSchema = z.object({
   id: z.string(),
   food_id: z.string().nullable(),
   name: z.string(),
-  package_amount: z.coerce.number(),
-  package_unit: z.string(),
+  package_amount: z.coerce.number().nullable(),
+  package_unit: z.string().nullable(),
   package_grams: z.coerce.number().nullable(),
   package_label: z.string().nullable().optional(),
   is_active: z.boolean().optional(),
+  provider: z.string().nullable().optional(),
+  provider_product_id: z.string().nullable().optional(),
+  provider_item_id: z.string().nullable().optional(),
+  upc: z.string().nullable().optional(),
+  brand: z.string().nullable().optional(),
 });
-const offerSchema = z.object({
+export const offerSchema = z.object({
   id: z.string(),
   product: productSchema,
   location: z.object({
@@ -31,6 +36,12 @@ const offerSchema = z.object({
   provider: z.string(),
   is_demo: z.boolean(),
   promotion: z.string().nullable(),
+  retrieved_at: z.string().nullable().optional(),
+  environment: z.string().optional(),
+  regular_price: z.coerce.number().nullable().optional(),
+  promo_price: z.coerce.number().nullable().optional(),
+  availability: z.string().optional(),
+  price_status: z.string().optional(),
 });
 export const getDemoPricing = cache(async function getDemoPricing() {
   const { client, user } = await requireProfile();
@@ -50,12 +61,19 @@ export const getDemoPricing = cache(async function getDemoPricing() {
   ]);
   if (offers.error || history.error || deals.error || budget.error)
     throw new Error("Price information could not be loaded.");
+  const demoEnabled =
+    process.env.NODE_ENV !== "production" ||
+    (process.env.CALTRACK_DEMO_PRICES === "true" && !process.env.VERCEL);
   return {
     currency: currency.parse(budget.data.currency),
     provider: new DemoPriceProvider(
       offerSchema
         .array()
-        .parse(offers.data.filter((o) => o.product?.is_active !== false)),
+        .parse(
+          demoEnabled
+            ? offers.data.filter((o) => o.product?.is_active !== false)
+            : [],
+        ),
       z
         .object({
           id: z.string(),

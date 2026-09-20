@@ -1,5 +1,7 @@
 begin;
 insert into auth.users(id,email) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','caltrack-phase9-a@example.invalid'),('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','caltrack-phase9-b@example.invalid');
+-- Fixture dates use SQL current_date, independent of the time this suite runs.
+update public.profiles set timezone='UTC' where id in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
 insert into public.foods(id,name) values('ffffffff-ffff-4fff-8fff-ffffffffffff','Phase 9 test food');
 insert into public.pantry_items(user_id,food_id,quantity_g) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','ffffffff-ffff-4fff-8fff-ffffffffffff',200);
 insert into public.daily_meal_logs(user_id,local_date,slot,name,calories,protein,carbs,fat,fiber,ingredients) values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',current_date,'Lunch','QA',100,10,10,1,1,'[{"food_id":"ffffffff-ffff-4fff-8fff-ffffffffffff","quantity_g":500}]');

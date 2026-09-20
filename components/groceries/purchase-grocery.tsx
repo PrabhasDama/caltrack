@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@/components/dashboard/use-mutation";
 import { buySplitAssignment } from "@/app/(app)/groceries/split-actions";
+import { PriceDisplay } from "./price-display";
 import type { SplitAssignment } from "@/lib/shopping/splits";
 import { purchaseGrocery } from "@/app/(app)/groceries/session-actions";
 import { money } from "@/lib/pricing/calculations";
@@ -253,16 +254,28 @@ function PurchaseForm({
       )}
       {offer && !offer.is_demo && (
         <p className="fine-print">
-          Your previous {offer.source} price:{" "}
-          {money(offer.price, offer.currency)} / package, recorded{" "}
-          {offer.observed_at.slice(0, 10)}. Enter the price you pay today.
+          <PriceDisplay
+            value={{
+              price: offer.price,
+              currency: offer.currency,
+              source: offer.source,
+              observedAt: offer.observed_at,
+              environment:
+                offer.source === "provider" ? offer.environment : undefined,
+              regularPrice: offer.regular_price,
+            }}
+          />{" "}
+          / package. Enter the price you pay today.
         </p>
       )}
       <p className="notice">
         {source === "demo"
           ? `Demo pricing · simulated estimate observed ${offer?.observed_at.slice(0, 10)}. This is not today's retailer price. Correct it from your receipt later.`
           : "Your manually entered receipt price."}{" "}
-        Total: {money(quantity * Number(price), session.receipt.currency)}
+        Total:{" "}
+        {price === ""
+          ? "Price needs confirmation"
+          : money(quantity * Number(price), session.receipt.currency)}
       </p>
       {food && (
         <label className="field">

@@ -1,4 +1,17 @@
 @import "tailwindcss";
+
+.store-search { display:flex; align-items:end; flex-wrap:wrap; gap:12px; }
+.store-search .field { flex:1; min-width:160px; }
+.store-results { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:16px; }
+.store-result.active { outline:2px solid #356346; }
+.store-title { display:block; font:inherit; font-weight:650; text-align:left; cursor:pointer; min-height:44px; }
+.store-view-switch { display:flex; gap:8px; }
+.store-map { width:100%; height:440px; border-radius:16px; overflow:hidden; }
+.store-marker { background:white; color:#31583e; border:2px solid #31583e; border-radius:50%; width:44px; height:44px; font-size:24px; cursor:pointer; }
+.store-marker.selected { background:#31583e; color:white; }
+.store-sharing { display:flex; gap:12px; align-items:center; min-height:44px; margin-top:18px; }
+.price-display { overflow-wrap:anywhere; }
+@media(max-width:600px) { .store-map { height:330px; } .store-search .button { flex:1; } }
 @custom-variant dark (&:where(.dark, .dark *));
 :root {
   --background: #f7f8f5;

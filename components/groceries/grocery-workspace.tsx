@@ -93,6 +93,13 @@ export function GroceryWorkspace({
         />
       )}
       <SessionPanel context={context} today={today} />
+      <p className="fine-print">
+        <Link href="/stores">
+          Find nearby stores and review product matches
+        </Link>
+        . Missing prices need confirmation; no savings are estimated for an
+        incomplete basket.
+      </p>
       <section className="card grocery-controls">
         <form
           onSubmit={(e) => {
